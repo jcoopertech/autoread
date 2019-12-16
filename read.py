@@ -14,7 +14,7 @@ __credits__ = ["James Cooper"]
 __license__ = "GNU GPLv3"
 __version__ = "1"
 __maintainer__ = "James Cooper"
-__email__ = "james.cooper@stu.gsmd.ac.uk"
+__email__ = "james@jcooper.tech"
 __status__ = "Development"
 
 
