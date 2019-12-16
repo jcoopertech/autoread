@@ -5,8 +5,6 @@ This software displays winch position and status from TAIT (formerly Stage Techn
 ## About this project
 This project was developed as part of my graduation project at the Guildhall School of Music and Drama, where we have a TAIT PI (Permanent Install). I was fortunate enough to spend a month at TAIT, and learnt a lot about the way their automation systems are set up.
 
-I've been planning and working on this project for a long while.
-
 This project was originally based upon a "bodgy" way that the school used previously when integrating automation position with other entertainment control systems, primarily D3 media integrations, to map projected content to a moving piece of scenery.
 
 ## Origins and aims of this project
