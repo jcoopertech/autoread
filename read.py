@@ -12,7 +12,7 @@ __author__ = "James Cooper"
 __copyright__ = "Copyright 2019, James Cooper"
 __credits__ = ["James Cooper"]
 __license__ = "GNU GPLv3"
-__version__ = "0"
+__version__ = "1"
 __maintainer__ = "James Cooper"
 __email__ = "james.cooper@stu.gsmd.ac.uk"
 __status__ = "Development"
@@ -32,15 +32,27 @@ if not _debug_:
     print("hi")
 
 if _debug_:
-    UDP_IP = "127.0.0.1"
+    UDP_IP = "172.16.1.255"
     UDP_PORT = 50365
+    UDP_PORT = 50741
     print(_debug_)
 
 # Generally, leave these, unless TAIT has changed their packet structure.
-LENGTH_HEADER = 24
-ATTR_PER_AXIS = 5
+LENGTH_HEADER = 24 # How long is the header of each packet?
+ATTR_PER_AXIS = 5 # How many attributes per axis?
 
 
+## Class definitions
+class Axis():
+    def __init__(self, PLC, position, speed, timeleft, status):
+        self.PLC = PLC
+        self._position = position
+        self._speed = speed
+        self._timeleft = timeleft
+        self.status = status
+        
+
+## Function definitions
 def doAxisDataParsing(axisData):
     # Convert all axis attributes into one big array,
     # Come up with solution to mixing len(4) and len(8) attributes in struct
@@ -48,6 +60,7 @@ def doAxisDataParsing(axisData):
 
 
 def parseAxisData(axisDataList, axis):
+    # Use this function to create class objects. Then store classes in an array.
     # Make this similar to parsePacketHeaderData, tip. Use ">B", for interpreting the BYTE length values.
     # Feed this the axisDataList from doAxisDataParsing, so you specify which axis you want, then it will tell you it's data.
     # Make this go the other way in another function, to grab every fifth attribute from axisDataList, starting from StatusCode, to get each status, and search by status for each bar. Potentially look into making each Axis an Axis() object, make custom class.
@@ -63,7 +76,7 @@ def parsePacketHeaderData(data):
     head1 = struct.unpack(">I",data[8:12])[0] # PLC Node Number
     head2 = struct.unpack(">I",data[12:16])[0] # Number of Axes driven from this PLC/ALM
     head3 = struct.unpack(">I",data[16:20])[0] # Null (these bytes return the value int(0))
-    head4 = struct.unpack(">I",data[20:24])[0] # First axis on this PLC (this returns value int(1))
+    head4 = struct.unpack(">I",data[20:24])[0] # First axis on this PLC (this returns value '1' as integer)
     PacketHeader = {
     "magicNumber" : magicNumber,
     "packetID" : packetID,
@@ -91,10 +104,26 @@ def breakdownThisAxis(axisData):
     return thisAxis
     
 
+def inDataTable(AxisClassArray, addr, data):
+    packet = {}
+    packet["Packet Header"] = parsePacketHeader(data)
+    NodeNo = Packet["Packet Header"]["head1"]
+    Packet["axisData"] = data[24:]
+    iteration = 0
+    for axis in range(packet["PacketHeader"]["head2"]):
+        AxisClassArray.append(Axis(breakdownThisAxis(Packet["AxisData"]), iteration))
+        iteration += 1
+    return AxisClassArray
 
 def intoDataTable(addr,data):
+# See below original code, but the IPI doesn't actually matter as we're already passed PLC Node Number in each packet.
+   PacketHeader = parsePacketHeaderData(data)
+   for axis in range(PacketHeader["head2"]):
     # If data is on Node 1
     if addr[0] == "172.16.1.51":
+        pass
+    if True: 
+        print(addr[0])
         #Break down the header information for each packet
         dataTablePLC1 = parsePacketHeaderData(data)
         # Now only look at axisData section of the Packet
@@ -108,6 +137,7 @@ def intoDataTable(addr,data):
         return "NODE1", dataTablePLC1
     # if on Node 2
     elif addr[0] == "172.16.1.52":
+        print(addr[0])
         dataTablePLC2 = parsePacketHeaderData(data)
         axisData = data[24:]
         for axis in range(dataTablePLC2["head2"]):
@@ -122,20 +152,23 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
     # This is the main polling loop of the program, to get each and every UDP data packet.
+    AxisClassArray=[]
     while 1:
         # Output the raw UDP data and src addr.
         data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
 
         # Call intoDataTable above
-
         NodeNo, NodeOutput = intoDataTable(addr,data)
+        print("_______________________________",NodeOutput["head1"], NodeOutput["head2"], NodeOutput["head4"], NodeOutput["packetID"])
+        for line in NodeOutput["axisData"]:
+              print(line)
 
-        print(NodeNo, NodeOutput["axisData"])
-        print(NodeNo, NodeOutput)
-
-        if NodeNo == "NODE1" and NodeOutput["axisData"][0] == "14100":
-            print(NodeNo, NodeOutput["axisData"])
-
+ #       if NodeNo == "NODE1" and NodeOutput["axisData"][0] == "14100":
+  #          print("hi")
+#            print(NodeNo, NodeOutput["axisData"])
+#            print("\n".join(NodeOutput["axisData"]))
 
 if __name__ == "__main__":
     main()
+
+# EOF
