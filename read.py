@@ -13,7 +13,7 @@ whilst studying on the BA Hons Technical Theatre Arts course.
 __author__ = "James Cooper"
 __copyright__ = "Copyright 2019, James Cooper"
 __credits__ = ["James Cooper"]
-__license__ = "GNU GPLv3"
+__license__ = "GNU AGPLv3"
 __version__ = "0.0.1"
 __maintainer__ = "James Cooper"
 __email__ = "james@jcooper.tech"
