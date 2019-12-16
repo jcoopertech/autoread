@@ -13,3 +13,14 @@ This project was originally based upon a "bodgy" way that the school used previo
 This software is based upon a single line of code from the old code used, which was only taking specific bytes of the data packets. This project aims to be scalable to multiple installations of eChameleon and Simotion, regardless of how many axes are in use. And instead of being limited to position data, hopes also to give a larger picture to the system, including now axisSpeed, axisStatus and timeLeft.
 
 This project hopes to be able to act as a network bridge, and output the information to the show network, as OSC data, to be interpreted (for example) by OSCRouter.
+
+## Development environment
+This project was developed on a Raspberry Pi 3B+, running Python 3.7, at present, it requires only a CLI, however the aim is to have this working with a Tkinter GUI in the near future.
+
+### Network integration within eChameleon systems
+This device connects to the eChameleon Desk Network, which talks to the eCham desks (G6, Illusionist, Nomad).
+The ip range on our install is 172.16.1.0/24
+
+There is a Profinet/Profibus network which exists within the MCC's, likely using the same network switches, on a different subnet.
+
+DHCP is not used, and your Raspberry Pi should be given a static IP in the desk network, that is not in use by Automation system, this can be determined using Wireshark or eCham Maintenance.
