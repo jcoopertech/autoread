@@ -134,8 +134,6 @@ def main():
         print(NodeNo, NodeOutput)
 
         if NodeNo == "NODE1" and NodeOutput["axisData"][0] == "14100":
-            print("hi")
-
             print(NodeNo, NodeOutput["axisData"])
 
 
