@@ -23,7 +23,7 @@ There is a Profinet/Profibus network which exists within the MCC's, likely using
 
 DHCP is not used, and your Raspberry Pi should be given a static IP in the desk network, that is not in use by Automation system, this can be determined using Wireshark or eCham Maintenance.
 
-# Professional programming
+## Professional programming
 I'm not a professional programmer, however I would like to think that my code will be documented well, and follow fairly good industry practice.
 Last studying Python 3 years ago, I know my way around, but not how the industry would like code laid out - naming conventions, etc.
 Constructive feedback is always welcome! (I'm also new to GitHub, feel free to comment on my code if that's possible!)
