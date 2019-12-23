@@ -47,11 +47,6 @@ def getValue(checks=None, acceptedOpt=None, msg=None):
     return str(usr_val)
 
 
-def guessBase():
-    # Let the software guess the user input - vanity feature, unreliable.
-    pass
-
-
 def showMenu():
     # I wonder what this could be...
     acceptedOpt = ["B","H","D","b","h","d"]
@@ -138,17 +133,11 @@ def doDebugFunctions(is_debug):
 if __name__ == "__main__":
     is_debug = True
     doDebugFunctions(is_debug)
-    exitState, acceptedOpt = initialise()
+    acceptedOpt = initialise()
     menuOpt = getValue("showMenu", acceptedOpt).upper()
-
     if menuOpt == acceptedOpt[0]:
         convertFromBinary()
     elif menuOpt == acceptedOpt[1]:
         convertFromHex()
     elif menuOpt == acceptedOpt[2]:
         convertFromDenary()
-        pass
-
-    else:
-        # Do exit state/error condition.
-        pass
