@@ -7,7 +7,8 @@
 
 class Error(Exception):
     """Base class for exceptions"""
-    pass
+    def __init__(self):
+        pass
 
 
 class InputError(Error):
@@ -22,38 +23,40 @@ class InputError(Error):
         self.message = message
 
 
-class MalformedNumberError(Error):
-    def __init__(self, message):
-        self.message = message
-        
+bit = "\#DEFAULT\#"
+err_msg = [
+"Unexpected length of item.",
+"This value isn't in the list. Left is correct options:",
+"{0} isn't in the list. Here are the accepted options.".format(bit),]
+
 
 def getValue(checks=None, acceptedOpt=None, msg=None):
-    # Sanitise input here.
+    # Sanitise input here
     if acceptedOpt != None:
+        acceptedOpt = [str(x) for x in acceptedOpt]
         print("Accepted Options: \"{0}\"".format(", ".join(acceptedOpt)))
-    usr_val = input("User Input:\n")
+    if msg != None:
+        usr_val = input("User Input - {0}\n".format(msg))
+    else:
+        usr_val = input("User Input:\n")
+
     if checks == "showMenu":
         # Sanitise input for showMenu func.
         if len(usr_val) != 1:
-            raise InputError(usr_val, "This value is too long. Max: 1")
+            raise InputError(usr_val, err_msg[0])
         elif usr_val not in acceptedOpt:
-            raise InputError(acceptedOpt, "This value isn't in the list. Left is correct options:")
-    elif checks == "binary":
-        if not len(usr_val) % 2 == 0:
-            raise MalformedNumberError("Binary integers must have an even number of bits. This one has {}".format(len(usr_val)))
+            raise InputError(acceptedOpt, err_msg[1])
+
+    elif checks != None:
+        # Sanitise input for ist options input
         for bit in usr_val:
             if not bit in acceptedOpt:
-                raise InputError(acceptedOpt, "{0} isn't in the list. Left is correct options:".format(bit))
+                raise InputError(acceptedOpt, err_msg[2])
     return str(usr_val)
 
 
-def guessBase():
-    # Let the software guess the user input - vanity feature, unreliable.
-    pass
-
-
 def showMenu():
-    # I wonder what this could be...
+    # acceptedOpt should be changed here, based on what options are available.
     acceptedOpt = ["B","H","D","b","h","d"]
     print("""
 Select input type here.
@@ -67,17 +70,16 @@ D\t- Entering a Decimal value.
 
 def initialise():
     # Set up anything for the program here, welcome msg etc.
-    exitState = False
     print("""
 Welcome to my little binary, hex and decimal conversor tool.
 
 Select what sort of number you're inputting, let us do the rest!""")
     acceptedOpt = showMenu()
-    return exitState, acceptedOpt
+    return acceptedOpt
 
 
 def convertFromBinary():
-    usr_val = getValue("binary", ["0","1"], "Enter binary digits")
+    usr_val = getValue("binary", ["0","1"], "Enter binary (Base 2)")
     denary = int(usr_val, 2)
     hexadecimal = format(denary,"X")
     print("""
@@ -89,42 +91,59 @@ In \tDecimal\t{1},
 
 
 def convertFromHex():
-    usr_val = getValue("decimal", [range(0,10)], "Enter binary digits")
-    denary = int(usr_val, 2)
-    hexadecimal = format(denary,"X")
+    def makeHexLetterList():
+        # This function is only used here - so it can be child of convertFromHex
+        # Generates a list of the hex digits... stoically returns ["A", .. "F"]
+        # Make to test my python
+        ord_start = 65
+        hex_letters = [chr(x) for x in range(65, 65+6)]
+        return hex_letters
+    acceptedOpt = [x for x in range(0,10)] + [y for y in makeHexLetterList()]
+    usr_val = getValue("hex", acceptedOpt, "Enter hexadecimal (Base 16))")
+    denary = int(usr_val, 16)
+    binary = format(denary,"b")
     print("""
 You entered: {0}
 
 In \tDecimal\t{1},
-\tHex\t{2}
-""".format(usr_val, denary, hexadecimal))
+\tBinary\t{2}
+""".format(usr_val, denary, binary))
 
 
 def convertFromDenary():
-    usr_val = getValue("binary", ["0","1"], "Enter binary digits")
-    denary = int(usr_val, 2)
-    hexadecimal = format(denary,"X")
+    acceptedOpt = range(0,10)
+    usr_val = getValue("denary", acceptedOpt, "Enter decimal (Base 10)")
+    binary = format(int(usr_val), "b")
+    hexadecimal = format(int(usr_val),"X")
     print("""
 You entered: {0}
 
-In \tDecimal\t{1},
+In \tBinary\t{1},
 \tHex\t{2}
-""".format(usr_val, denary, hexadecimal))
+""".format(usr_val, binary, hexadecimal))
 
+
+def doDebugFunctions(is_debug):
+    def printRestartLine():
+        """This is literally just a line. It should only run at top of run.
+        Which is why it's nested."""
+        line = "=" * 40
+        msg = " RESTART "
+        print(line+msg+line ,end="")
+    # If you need to test a function, just pop it here I guess.
+    printRestartLine()
+    # Include a pass just in case you forget... just save the headache.
+    pass
 
 if __name__ == "__main__":
-    exitState, acceptedOpt = initialise()
-    menuOpt = getValue("showMenu", acceptedOpt)
-        
-    if menuOpt.upper() == acceptedOpt[0]:
+    is_debug = False
+    if is_debug == True:
+        doDebugFunctions(is_debug)
+    acceptedOpt = initialise()
+    menuOpt = getValue("showMenu", acceptedOpt).upper()
+    if menuOpt == acceptedOpt[0]:
         convertFromBinary()
-    elif menuOpt.upper() == acceptedOpt[1]:
-        # Do Hex Input
-        pass
-    elif menuOpt.upper() == acceptedOpt[2]:
-        # Do Denary Input
-        pass
-    
-    else:
-        # Do exit state/error condition.
-        pass
+    elif menuOpt == acceptedOpt[1]:
+        convertFromHex()
+    elif menuOpt == acceptedOpt[2]:
+        convertFromDenary()
