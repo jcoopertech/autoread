@@ -7,7 +7,8 @@
 
 class Error(Exception):
     """Base class for exceptions"""
-    pass
+    def __init__(self):
+        pass
 
 
 class InputError(Error):
@@ -20,6 +21,13 @@ class InputError(Error):
     def __init__(self, expression, message):
         self.expression = expression
         self.message = message
+
+
+bit = "\#DEFAULT\#"
+err_msg = [
+"Unexpected length of item.",
+"This value isn't in the list. Left is correct options:",
+"{0} isn't in the list. Here are the accepted options.".format(bit),]
 
 
 def getValue(checks=None, acceptedOpt=None, msg=None):
@@ -35,20 +43,20 @@ def getValue(checks=None, acceptedOpt=None, msg=None):
     if checks == "showMenu":
         # Sanitise input for showMenu func.
         if len(usr_val) != 1:
-            raise InputError(usr_val, "Unexpected length of item. Expected len of ")
+            raise InputError(usr_val, err_msg[0])
         elif usr_val not in acceptedOpt:
-            raise InputError(acceptedOpt, "This value isn't in the list. Left is correct options:")
+            raise InputError(acceptedOpt, err_msg[1])
 
     elif checks != None:
         # Sanitise input for ist options input
         for bit in usr_val:
             if not bit in acceptedOpt:
-                raise InputError(acceptedOpt, "{0} isn't in the list. Here are the accepted options.".format(bit))
+                raise InputError(acceptedOpt, err_msg[2])
     return str(usr_val)
 
 
 def showMenu():
-    # I wonder what this could be...
+    # acceptedOpt should be changed here, based on what options are available.
     acceptedOpt = ["B","H","D","b","h","d"]
     print("""
 Select input type here.
@@ -62,13 +70,12 @@ D\t- Entering a Decimal value.
 
 def initialise():
     # Set up anything for the program here, welcome msg etc.
-    exitState = False
     print("""
 Welcome to my little binary, hex and decimal conversor tool.
 
 Select what sort of number you're inputting, let us do the rest!""")
     acceptedOpt = showMenu()
-    return exitState, acceptedOpt
+    return acceptedOpt
 
 
 def convertFromBinary():
@@ -104,10 +111,10 @@ In \tDecimal\t{1},
 
 
 def convertFromDenary():
-    acceptedOpt = [range(0,10)]
+    acceptedOpt = range(0,10)
     usr_val = getValue("denary", acceptedOpt, "Enter decimal (Base 10)")
-    binary = int(usr_val, 2)
-    hexadecimal = format(denary,"X")
+    binary = format(int(usr_val), "b")
+    hexadecimal = format(int(usr_val),"X")
     print("""
 You entered: {0}
 
@@ -124,15 +131,14 @@ def doDebugFunctions(is_debug):
         msg = " RESTART "
         print(line+msg+line ,end="")
     # If you need to test a function, just pop it here I guess.
-    if is_debug == True:
-        printRestartLine()
-    else:
-        pass
-
+    printRestartLine()
+    # Include a pass just in case you forget... just save the headache.
+    pass
 
 if __name__ == "__main__":
-    is_debug = True
-    doDebugFunctions(is_debug)
+    is_debug = False
+    if is_debug == True:
+        doDebugFunctions(is_debug)
     acceptedOpt = initialise()
     menuOpt = getValue("showMenu", acceptedOpt).upper()
     if menuOpt == acceptedOpt[0]:
