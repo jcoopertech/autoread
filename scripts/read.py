@@ -31,7 +31,6 @@ _debug_ = False
 if not _debug_:
     UDP_IP = "172.16.1.255"
     UDP_PORT = 30501
-    print(_debug_)
 
 
 # Generally, leave these, unless TAIT has changed their packet structure.
@@ -40,6 +39,56 @@ LENGTH_HEADER = 24 # How long is the header of each packet?
 # the payload before axisData
 ATTR_PER_AXIS = 5 # How many attributes per axis?
 
+Data_Table = {}
+
+# Format: Node,Channel,Axis
+axisNodeChannels = [
+[1, 1, 20],
+[1, 2, 22],
+[1, 3, 24],
+[1, 4, 26],
+[1, 5, 28],
+[1, 6, 30],
+[1, 7, 32],
+[1, 8, 35],
+[1, 9, 41],
+[1, 10, 42],
+[1, 11, 43],
+[1, 12, 44],
+[1, 13, 45],
+[1, 14, 46],
+[1, 15, 91],
+[1, 16, 92],
+[1, 17, 93],
+[2, 1, 1],
+[2, 2, 2],
+[2, 3, 5],
+[2, 4, 7],
+[2, 5, 9],
+[2, 6, 11],
+[2, 7, 13],
+[2, 8, 15],
+[2, 9, 17],
+[2, 10, 19],
+[2, 11, 21],
+[2, 12, 23],
+[2, 13, 25],
+[2, 14, 27],
+[2, 15, 29],
+[2, 16, 31],
+[2, 17, 33],
+[2, 18, 34],
+[2, 19, 3],
+[2, 20, 4],
+[2, 21, 6],
+[2, 22, 8],
+[2, 23, 10],
+[2, 24, 12],
+[2, 25, 14],
+[2, 26, 16],
+[2, 27, 18],
+[3, 1, 81],
+[3, 2, 82]]
 
 ## Class definitions
 # Experimental class to store each Axis as an object, for ease of developing a
@@ -127,63 +176,79 @@ def intoDataTable(addr,data):
     from any IP... which will cause issues.
     """
 # See below original code, but the IPI doesn't actually matter as we're already passed PLC Node Number in each packet.
-   PacketHeader = parsePacketHeaderData(data)
-   for axis in range(PacketHeader["head2"]):
-    # If data is on Node 1
-
-    """
-    For debugging only - ignore IP, and just do this to every IP.
-    This makes the ''#if on Node 2' section below redundant
-    This should probably be subroutined anyway...
-    """
-    if addr[0] == "172.16.1.51":
-        pass
-    if True:
-        print(addr[0])
+    PacketHeader = parsePacketHeaderData(data)
+    for axis in range(PacketHeader["head2"]):
+#        print("packet header node no")
+#        print(PacketHeader["head1"])
         #Break down the header information for each packet
-        dataTablePLC1 = parsePacketHeaderData(data)
+        dataTable = parsePacketHeaderData(data)
         # Now only look at axisData section of the Packet
         axisData = data[24:]
-        for axis in range(dataTablePLC1["head2"]): #Look up headData2 from the PacketHeader
+        axisCount = 1
+        for axis in range(dataTable["head2"]): #Look up headData2 from the PacketHeader
+            for combin in axisNodeChannels:
+                if combin[0] == PacketHeader["head1"] and combin[1] == axisCount:
+                    axNoCh = combin[2]
+#                    print(axNoCh)
             # Here you do the raw offset looping through the axes with the unpacking of the offset bits stuff.
             thisAxis = breakdownThisAxis(axisData)
             #dataTablePLC1["axisData"].append(thisAxis)
             axisData = axisData[14:]
-            dataTablePLC1["axisData"].append(thisAxis)
-        return "NODE1", dataTablePLC1
-    # if on Node 2
-    elif addr[0] == "172.16.1.52":
-        print(addr[0])
-        dataTablePLC2 = parsePacketHeaderData(data)
-        axisData = data[24:]
-        for axis in range(dataTablePLC2["head2"]):
-            thisAxis = breakdownThisAxis(axisData)
-            axisData = axisData[14:]
-            dataTablePLC2["axisData"].append(thisAxis)
-        return "NODE2", dataTablePLC2
+            dataTable["axisData"].append(thisAxis)
+#            print("axisNodeChannels: [{1}]: This axis: {0}".format(thisAxis,axNoCh))
+            axisCount += 1
+            Data_Table[str(axNoCh)] = thisAxis
+        return "NODE1", dataTable
 
 
-def main():
+def printAxisData_Table(Data_Table):
+    QuantifiedArray = []
+    AxisMasterOrder = sorted(Data_Table, key = lambda x : int(x.split()[0]))
+    for axis in AxisMasterOrder:
+#        print("axis", axis)
+#        print(Data_Table[axis])
+        QuantifiedArray.append([["Axis", axis],Data_Table[axis]])
+    return QuantifiedArray
+
+
+def getSpecificAxisData(QuantifiedArray, AxisNo):
+    print(QuantifiedArray)
+    for Axis in QuantifiedArray:
+        if Axis[0][1] == str(AxisNo):
+            Position = Axis[1][0]
+            Speed = Axis[1][1]
+            Time = Axis[1][2]
+            Status = Axis[1][3]
+            return Position, Speed, Time, Status
+    # I.E. If the value isn't in this packet
+    return ("Get from cache")
+
+
+def read_main():
     # Set up UDP receiving ports
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
     # This is the main polling loop of the program, to get each and every UDP data packet.
     AxisClassArray=[]
-    while 1:
-        """When using Tkinter, this code should be called by the
-        'after' method. Our system sends packets every 50ms per node."""
-        # Output the raw UDP data and src addr.
-        data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
+    """When using Tkinter, this code should be called by the
+    'after' method. Our system sends packets every 50ms per node."""
+    # Output the raw UDP data and src addr.
+    data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
 
-        """
-        NodeNo, NodeOutput is parsed properly, and this is what is sent to
-        Tkinter to be displayed neatly. In theory.
-        """
-        NodeNo, NodeOutput = intoDataTable(addr,data)
-        print("_______________________________",NodeOutput["head1"], NodeOutput["head2"], NodeOutput["head4"], NodeOutput["packetID"])
-        for line in NodeOutput["axisData"]:
-              print(line)
+    """
+    NodeNo, NodeOutput is parsed properly, and this is what is sent to
+    Tkinter to be displayed neatly. In theory.
+    """
+    NodeNo, NodeOutput = intoDataTable(addr,data)
+#        print("_______________________________",NodeOutput["head1"], NodeOutput["head2"], NodeOutput["head4"], NodeOutput["packetID"])
+#        for line in NodeOutput["axisData"]:
+#              print(line)
+    QuantifiedArray = printAxisData_Table(Data_Table)
+    for line in QuantifiedArray:
+        print(line)
+#    print(getSpecificAxisData(QuantifiedArray,34))
+    return QuantifiedArray
 
 
 if __name__ == "__main__":
-    main()
+    read_main()
