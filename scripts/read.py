@@ -213,7 +213,8 @@ def printAxisData_Table(Data_Table):
 
 def getSpecificAxisData(QuantifiedArray, AxisNo):
     print(QuantifiedArray)
-    for Axis in QuantifiedArray:
+    localQuantifiedArray = list(QuantifiedArray)
+    for Axis in localQuantifiedArray:
         if Axis[0][1] == str(AxisNo):
             Position = Axis[1][0]
             Speed = Axis[1][1]

@@ -22,16 +22,13 @@ except ImportError:
 
 import GUI_support
 
+
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
     global val, w, root
     root = tk.Tk()
     top = MainWindow (root)
     GUI_support.init(root, top)
-    print("hi1")
-    root.mainloop()
-    print("hi")
-
 
 
 w = None
@@ -50,14 +47,18 @@ def destroy_MainWindow():
     w = None
 
 class MainWindow:
-    def update_axes(self, QuantifiedArray, AxesList=None, ):
-        Axis35 = getSpecificAxisData(QuantifiedArray, 35)
-        self.AxisPosition_3.configure(text=Axis35[1])
+    def update_axes(self, AxesList=None, ):
+        UpdateQuantArr = self.QuantifiedArray
+        Axis35 = list(getSpecificAxisData(UpdateQuantArr, 35))
+        self.AxisPosition_3.configure(text=str(Axis35[0])+"mm")
+        print(Axis35)
 
     def updater(self):
-        QuantifiedArray = read_main()
-        self.update_axes(self, QuantifiedArray)
-        self.after(1000, self.updater)
+        self.QuantifiedArray = read_main()
+        self.update_axes()
+        print("hi")
+        root.after(1, MainWindow.updater(self))
+        
 
     def __init__(self, top=None):
         '''This class configures and populates the toplevel window.
@@ -349,9 +350,6 @@ class MainWindow:
         self.Label1.configure(text='''Developed by James Cooper for the Guildhall School of Music and Drama. Not working? Contact james@jcooper.tech. This system should not be relied upon for show or safety critical purposes. System provided as is, with no guarantee.''')
 
 
-        #Build Data_Table for the first time.
-
-        self.updater()
 
 # The following code is added to facilitate the Scrolled widgets you specified.
 class AutoScroll(object):
