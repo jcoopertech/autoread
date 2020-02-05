@@ -234,7 +234,6 @@ class MainWindow:
         UpdateQuantArr = self.QuantifiedArray
         Axis35 = list(getSpecificAxisData(UpdateQuantArr, 35))
         self.AxisPosition_3.configure(text=str(Axis35[0])+"mm")
-        print(Axis35)
 
     def updater(self):
         self.QuantifiedArray = read_main()
