@@ -114,18 +114,18 @@ class MainWindow:
             AxisLabels = []
             #Labels per axis: 7
             AxisLabels.append(tk.Frame(self.MCC1))
-            VertSpacing = len(AxisNumbers) / 2
+            VertSpacing = 75
             if AxisOffset % 4 == 1:
-                AxisLabels[AxisItem].place(x=10, y=(17*AxisOffset), relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=10, y=17*((AxisOffset*4)-(AxisOffset * 3))+17, relheight=0.064 #rely=0.023
                         , width=400, bordermode='ignore')
             elif AxisOffset % 4 == 2:
-                AxisLabels[AxisItem].place(x=430, y=(17*AxisOffset) * 0.5, relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=430, y=17*((AxisOffset*4)-(AxisOffset * 3)), relheight=0.064 #rely=0.023
                         , width=400, bordermode='ignore')
             elif AxisOffset % 4 == 3:
-                AxisLabels[AxisItem].place(x=850, y=(17*AxisOffset)-20, relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=850, y=17*((AxisOffset*4)-(AxisOffset * 3))-17, relheight=0.064 #rely=0.023
                         , width=400, bordermode='ignore')
             elif AxisOffset % 4 == 0:
-                AxisLabels[AxisItem].place(x=1270, y=(17*AxisOffset)-20, relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=1270, y=17*((AxisOffset*4)-(AxisOffset * 3))-(17*2), relheight=0.064 #rely=0.023
                         , width=400, bordermode='ignore')
 
             AxisLabels[AxisItem].configure(relief='flat')
