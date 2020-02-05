@@ -5,6 +5,23 @@
 #  in conjunction with Tcl version 8.6
 #    Dec 30, 2019 01:06:36 AM GMT  platform: Darwin
 
+__doc__ = """
+This software takes UDP readouts from TAIT Stage Tech's eChameleon software, and
+translates it into useful things.
+Originally written for the Guildhall School of Music and Drama by James Cooper,
+whilst studying on the BA Hons Technical Theatre Arts course.
+"""
+
+
+__author__ = "James Cooper"
+__copyright__ = "Copyright 2019, James Cooper"
+__credits__ = ["James Cooper"]
+__license__ = "GNU AGPLv3"
+__version__ = "0.1.0"
+__maintainer__ = "James Cooper"
+__email__ = "james@jcooper.tech"
+__status__ = "Development"
+
 import sys
 
 try:
@@ -115,6 +132,7 @@ class MainWindow:
             #Labels per axis: 7
             AxisLabels.append(tk.Frame(self.MCC1))
             VertSpacing = 75
+            """Insert frame for item."""
             if AxisOffset % 4 == 1:
                 AxisLabels[AxisItem].place(x=10, y=17*((AxisOffset*4)-(AxisOffset * 3))+17, relheight=0.064 #rely=0.023
                         , width=400, bordermode='ignore')
@@ -234,6 +252,7 @@ class MainWindow:
         UpdateQuantArr = self.QuantifiedArray
         Axis35 = list(getSpecificAxisData(UpdateQuantArr, 35))
         self.AxisPosition_3.configure(text=str(Axis35[0])+"mm")
+
 
     def updater(self):
         self.QuantifiedArray = read_main()

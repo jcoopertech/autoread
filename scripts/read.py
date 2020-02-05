@@ -14,7 +14,7 @@ __author__ = "James Cooper"
 __copyright__ = "Copyright 2019, James Cooper"
 __credits__ = ["James Cooper"]
 __license__ = "GNU AGPLv3"
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 __maintainer__ = "James Cooper"
 __email__ = "james@jcooper.tech"
 __status__ = "Development"
@@ -43,64 +43,18 @@ Data_Table = {}
 
 # Format: Node,Channel,Axis
 axisNodeChannels = [
-[1, 1, 20],
-[1, 2, 22],
-[1, 3, 24],
-[1, 4, 26],
-[1, 5, 28],
-[1, 6, 30],
-[1, 7, 32],
-[1, 8, 35],
-[1, 9, 41],
-[1, 10, 42],
-[1, 11, 43],
-[1, 12, 44],
-[1, 13, 45],
-[1, 14, 46],
-[1, 15, 91],
-[1, 16, 92],
-[1, 17, 93],
-[2, 1, 1],
-[2, 2, 2],
-[2, 3, 5],
-[2, 4, 7],
-[2, 5, 9],
-[2, 6, 11],
-[2, 7, 13],
-[2, 8, 15],
-[2, 9, 17],
-[2, 10, 19],
-[2, 11, 21],
-[2, 12, 23],
-[2, 13, 25],
-[2, 14, 27],
-[2, 15, 29],
-[2, 16, 31],
-[2, 17, 33],
-[2, 18, 34],
-[2, 19, 3],
-[2, 20, 4],
-[2, 21, 6],
-[2, 22, 8],
-[2, 23, 10],
-[2, 24, 12],
-[2, 25, 14],
-[2, 26, 16],
-[2, 27, 18],
-[3, 1, 81],
-[3, 2, 82]]
-
-## Class definitions
-# Experimental class to store each Axis as an object, for ease of developing a
-# GUI on top of this with Tkinter
-class Axis():
-    def __init__(self, PLC, position, speed, timeleft, status):
-        self.PLC = PLC
-        self._position = position
-        self._speed = speed
-        self._timeleft = timeleft
-        self.status = status
-
+[1, 1, 20],[1, 2, 22],[1, 3, 24],[1, 4, 26],
+[1, 5, 28],[1, 6, 30],[1, 7, 32],[1, 8, 35],
+[1, 9, 41],[1, 10, 42],[1, 11, 43],[1, 12, 44],
+[1, 13, 45],[1, 14, 46],[1, 15, 91],[1, 16, 92],
+[1, 17, 93],[2, 1, 1],[2, 2, 2],[2, 3, 5],
+[2, 4, 7],[2, 5, 9],[2, 6, 11],[2, 7, 13],
+[2, 8, 15],[2, 9, 17],[2, 10, 19],[2, 11, 21],
+[2, 12, 23],[2, 13, 25],[2, 14, 27],[2, 15, 29],
+[2, 16, 31],[2, 17, 33],[2, 18, 34],[2, 19, 3],
+[2, 20, 4],[2, 21, 6],[2, 22, 8],[2, 23, 10],
+[2, 24, 12],[2, 25, 14],[2, 26, 16],[2, 27, 18],
+[3, 1, 81],[3, 2, 82]]
 
 ## Function definitions
 # NB: Function doAxisDataParsing removed, was redundant and unused.
@@ -132,12 +86,6 @@ def parsePacketHeaderData(data):
     "axisData" : [], # Stores list of all axes data
     }
     return PacketHeader
-
-
-def joinDataTables(TableList):
-    MasterArray = []
-    for DataTable in TableList:
-        MasterArray.append(DataTable)
 
 
 def breakdownThisAxis(axisData):
