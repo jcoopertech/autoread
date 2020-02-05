@@ -34,7 +34,3 @@ def destroy_window():
 if __name__ == '__main__':
     import GUI
     GUI.vp_start_gui()
-
-
-
-

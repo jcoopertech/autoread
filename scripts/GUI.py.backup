@@ -6,6 +6,7 @@
 #    Dec 30, 2019 01:06:36 AM GMT  platform: Darwin
 
 import sys
+from read import *
 
 try:
     import Tkinter as tk
@@ -19,7 +20,9 @@ except ImportError:
     import tkinter.ttk as ttk
     py3 = True
 
+
 import GUI_support
+
 
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
@@ -27,7 +30,7 @@ def vp_start_gui():
     root = tk.Tk()
     top = MainWindow (root)
     GUI_support.init(root, top)
-    root.mainloop()
+
 
 w = None
 def create_MainWindow(root, *args, **kwargs):
@@ -37,6 +40,7 @@ def create_MainWindow(root, *args, **kwargs):
     w = tk.Toplevel (root)
     top = MainWindow (w)
     GUI_support.init(w, top, *args, **kwargs)
+    GUI_support.after(50, updater)
     return (w, top)
 
 def destroy_MainWindow():
@@ -333,6 +337,7 @@ class MainWindow:
         self.Label1.configure(background="#550000")
         self.Label1.configure(foreground="#aaaaaa")
         self.Label1.configure(text='''Developed by James Cooper for the Guildhall School of Music and Drama. Not working? Contact james@jcooper.tech. This system should not be relied upon for show or safety critical purposes. System provided as is, with no guarantee.''')
+
 
     def update_axes(self, AxesList=None, ):
         UpdateQuantArr = self.QuantifiedArray

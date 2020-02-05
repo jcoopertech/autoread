@@ -198,16 +198,22 @@ def intoDataTable(addr,data):
 #            print("axisNodeChannels: [{1}]: This axis: {0}".format(thisAxis,axNoCh))
             axisCount += 1
             Data_Table[str(axNoCh)] = thisAxis
-        return "NODE1", dataTable
+        return dataTable
 
 
-def printAxisData_Table(Data_Table):
+def addToExistingAxisArray(AxisArrayOld,AxisArrayNew):
+    for item in AxisArrayOld:
+        if item[0] == AxisArrayNew[AxisArrayOld.index(item)]:
+            print("I exist already")
+
+
+def sortAxisData_Table(Data_Table, AxisArray):
     QuantifiedArray = []
     AxisMasterOrder = sorted(Data_Table, key = lambda x : int(x.split()[0]))
     for axis in AxisMasterOrder:
 #        print("axis", axis)
 #        print(Data_Table[axis])
-        QuantifiedArray.append([["Axis", axis],Data_Table[axis]])
+        QuantifiedArray.append([axis,Data_Table[axis]])
     return QuantifiedArray
 
 
@@ -225,31 +231,39 @@ def getSpecificAxisData(QuantifiedArray, AxisNo):
     return ("Get from cache")
 
 
+def convertAxisArraytoDictionary(AxisArray):
+    AxDict = {}
+    for item in AxisArray:
+        AxDict[item[0]] = tuple(item[1])
+    return(AxDict)
+
 def read_main():
     # Set up UDP receiving ports
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
     # This is the main polling loop of the program, to get each and every UDP data packet.
-    AxisClassArray=[]
+    Node1Get = False
+    Node2Get = False
+    AxisArray=[]
     """When using Tkinter, this code should be called by the
     'after' method. Our system sends packets every 50ms per node."""
     # Output the raw UDP data and src addr.
-    data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
+    UpdateBoth = False
+    while UpdateBoth == False:
+        data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
 
-    """
-    NodeNo, NodeOutput is parsed properly, and this is what is sent to
-    Tkinter to be displayed neatly. In theory.
-    """
-    NodeNo, NodeOutput = intoDataTable(addr,data)
-#        print("_______________________________",NodeOutput["head1"], NodeOutput["head2"], NodeOutput["head4"], NodeOutput["packetID"])
-#        for line in NodeOutput["axisData"]:
-#              print(line)
-    QuantifiedArray = printAxisData_Table(Data_Table)
-    for line in QuantifiedArray:
-        print(line)
-#    print(getSpecificAxisData(QuantifiedArray,34))
-    return QuantifiedArray
+        NodeOutput = intoDataTable(addr,data)
+        AxisArray = sortAxisData_Table(Data_Table, AxisArray)
+        if NodeOutput["head1"] == 1:
+            Node1Get = True
+        if NodeOutput["head1"] == 2:
+            Node2Get = True
+        if Node1Get == True and Node2Get == True:
+            UpdateBoth = True
+    #    print(getSpecificAxisData(QuantifiedArray,34))
+    AxisDict = convertAxisArraytoDictionary(AxisArray) # Now we can query an Axis Number and get info as tuple.
+    return AxisDict
 
 
 if __name__ == "__main__":
-    read_main()
+    print(read_main())

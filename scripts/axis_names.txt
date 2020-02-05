@@ -1,0 +1,44 @@
+Full black
+House Tabs
+Header
+DS Wall
+DS Border (Full Black)
+Swing Truss 1
+Swing Truss 2
+LX 1
+Fluorescent 1
+MS Border
+Flybar 11
+Fluorescent 2
+LX 2
+MS Wall
+Fluorescent 3
+LX 3
+Walls DS Points
+Fluorescent 4
+Sound bar
+LX 4
+Fluorescent 5
+US Border
+Walls MS Points
+LX 5
+LX 6
+Back Walls
+Flybar 27
+Walls US Points
+Flybar 29
+Flybar 30
+Flybar 31
+Cyclorama Border
+Cyclorama
+Sidebar SL
+Sidebar SR
+NA
+NA
+NA
+NA
+NA
+NA
+NA
+Swing SR
+Swing SL

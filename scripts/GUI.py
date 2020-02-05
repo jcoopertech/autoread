@@ -6,7 +6,6 @@
 #    Dec 30, 2019 01:06:36 AM GMT  platform: Darwin
 
 import sys
-from read import *
 
 try:
     import Tkinter as tk
@@ -21,7 +20,7 @@ except ImportError:
     py3 = True
 
 import GUI_support
-
+from read import read_main
 
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
@@ -29,7 +28,7 @@ def vp_start_gui():
     root = tk.Tk()
     top = MainWindow (root)
     GUI_support.init(root, top)
-
+    root.mainloop()
 
 w = None
 def create_MainWindow(root, *args, **kwargs):
@@ -47,19 +46,6 @@ def destroy_MainWindow():
     w = None
 
 class MainWindow:
-    def update_axes(self, AxesList=None, ):
-        UpdateQuantArr = self.QuantifiedArray
-        Axis35 = list(getSpecificAxisData(UpdateQuantArr, 35))
-        self.AxisPosition_3.configure(text=str(Axis35[0])+"mm")
-        print(Axis35)
-
-    def updater(self):
-        self.QuantifiedArray = read_main()
-        self.update_axes()
-        print("hi")
-        root.after(1, MainWindow.updater(self))
-        
-
     def __init__(self, top=None):
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
@@ -78,7 +64,7 @@ class MainWindow:
 
         top.geometry("1737x1023+55+23")
         top.minsize(72, 15)
-        top.maxsize(2000, 1075)
+        top.maxsize(2000, 1500)
         top.resizable(1, 1)
         top.title("Autoread: Milton Court Theatre")
         top.configure(borderwidth="1")
@@ -95,223 +81,126 @@ class MainWindow:
         self.Master_Container.configure(highlightbackground="#d9d9d9")
         self.Master_Container.configure(highlightcolor="black")
 
+        def importAutoData():
+            AxisArray = read_main()
+            return AxisArray
+        AxisArray = importAutoData()
+
+
+        def importAxisNames():
+            with open("axis_names.txt","r") as file:
+                AxisNames = list(file.readlines())
+            for line in AxisNames:
+                AxisNames[AxisNames.index(line)] = line.replace("\n","")
+                print(AxisNames)
+            return AxisNames
+
+        AxisNames = importAxisNames()
+
         self.MCC1 = tk.LabelFrame(self.Master_Container)
-        self.MCC1.place(relx=0.006, rely=0.02, relheight=0.872, relwidth=0.491)
+        self.MCC1.place(relx=0.006, rely=0.02, relheight=0.872, relwidth=0.98)
         self.MCC1.configure(relief='groove')
         self.MCC1.configure(foreground="#ffffff")
-        self.MCC1.configure(text='''MCC 1''')
+        self.MCC1.configure(text='''Milton Court Theatre''')
         self.MCC1.configure(background="#000066")
         self.MCC1.configure(highlightbackground="#d9d9d9")
         self.MCC1.configure(highlightcolor="black")
 
-        self.AxisFm1 = tk.Frame(self.MCC1)
-        self.AxisFm1.place(relx=0.012, rely=0.023, relheight=0.064
-                , relwidth=0.482, bordermode='ignore')
-        self.AxisFm1.configure(relief='flat')
-        self.AxisFm1.configure(borderwidth="2")
-        self.AxisFm1.configure(background="#d9d9d9")
-        self.AxisFm1.configure(highlightbackground="#d9d9d9")
-        self.AxisFm1.configure(highlightcolor="black")
+        self.TkStorage = list([]*len(AxisArray))
+        AxisOffset = 1        #"""Choose the Axes to display here:"""
+        AxisNumbers = [*range(1,36),*range(41,47),*range(91,94)]
+        for Axis in AxisArray:
+            AxisItem = 0
+            AxisLabels = []
+            #Labels per axis: 7
+            AxisLabels.append(tk.Frame(self.MCC1))
+            VertSpacing = len(AxisNumbers) / 2
+            if AxisOffset % 4 == 1:
+                AxisLabels[AxisItem].place(x=10, y=(17*AxisOffset), relheight=0.064 #rely=0.023
+                        , width=400, bordermode='ignore')
+            elif AxisOffset % 4 == 2:
+                AxisLabels[AxisItem].place(x=430, y=(17*AxisOffset) * 0.5, relheight=0.064 #rely=0.023
+                        , width=400, bordermode='ignore')
+            elif AxisOffset % 4 == 3:
+                AxisLabels[AxisItem].place(x=850, y=(17*AxisOffset)-20, relheight=0.064 #rely=0.023
+                        , width=400, bordermode='ignore')
+            elif AxisOffset % 4 == 0:
+                AxisLabels[AxisItem].place(x=1270, y=(17*AxisOffset)-20, relheight=0.064 #rely=0.023
+                        , width=400, bordermode='ignore')
 
-        self.AxisNum = tk.Label(self.AxisFm1)
-        self.AxisNum.place(relx=0.0, rely=0.364, height=35, width=40)
-        self.AxisNum.configure(activebackground="#f9f9f9")
-        self.AxisNum.configure(activeforeground="black")
-        self.AxisNum.configure(background="#000000")
-        self.AxisNum.configure(font="-family {Arial} -size 30")
-        self.AxisNum.configure(foreground="#ffff00")
-        self.AxisNum.configure(highlightbackground="#d9d9d9")
-        self.AxisNum.configure(highlightcolor="black")
-        self.AxisNum.configure(text='''1:''')
+            AxisLabels[AxisItem].configure(relief='flat')
+            AxisLabels[AxisItem].configure(borderwidth="2")
+            AxisLabels[AxisItem].configure(background="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightbackground="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightcolor="black")
 
-        self.AxisPosition = tk.Label(self.AxisFm1)
-        self.AxisPosition.place(relx=0.098, rely=0.364, height=35, width=140)
-        self.AxisPosition.configure(activebackground="#f9f9f9")
-        self.AxisPosition.configure(activeforeground="black")
-        self.AxisPosition.configure(anchor='e')
-        self.AxisPosition.configure(background="#ffffff")
-        self.AxisPosition.configure(font="-family {Arial} -size 30")
-        self.AxisPosition.configure(foreground="#000000")
-        self.AxisPosition.configure(highlightbackground="#d9d9d9")
-        self.AxisPosition.configure(highlightcolor="black")
-        self.AxisPosition.configure(text='''7502mm''')
+            AxisItem += 1
+            AxisLabels.append(tk.Label(AxisLabels[0]))
+            AxisLabels[AxisItem].place(relx=0.0, rely=0.364, height=35, width=40)
+            AxisLabels[AxisItem].configure(activebackground="#f9f9f9")
+            AxisLabels[AxisItem].configure(activeforeground="black")
+            AxisLabels[AxisItem].configure(background="#000000")
+            AxisLabels[AxisItem].configure(font="-family {Arial} -size 30")
+            AxisLabels[AxisItem].configure(foreground="#ffff00")
+            AxisLabels[AxisItem].configure(highlightbackground="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightcolor="black")
+            AxisLabels[AxisItem].configure(text=str(AxisNumbers[AxisOffset-1]))
 
-        self.AxisSpeed = tk.Label(self.AxisFm1)
-        self.AxisSpeed.place(relx=0.439, rely=0.364, height=35, width=159)
-        self.AxisSpeed.configure(activebackground="#000000")
-        self.AxisSpeed.configure(activeforeground="white")
-        self.AxisSpeed.configure(activeforeground="black")
-        self.AxisSpeed.configure(anchor='e')
-        self.AxisSpeed.configure(background="#000000")
-        self.AxisSpeed.configure(font="-family {Arial} -size 30")
-        self.AxisSpeed.configure(foreground="#ffffff")
-        self.AxisSpeed.configure(highlightbackground="#d9d9d9")
-        self.AxisSpeed.configure(highlightcolor="black")
-        self.AxisSpeed.configure(text='''0 mm/s''')
+            AxisItem += 1
+            AxisLabels.append(tk.Label(AxisLabels[0]))
+            AxisLabels[AxisItem].place(relx=0.098, rely=0.364, height=35, width=140)
+            AxisLabels[AxisItem].configure(activebackground="#f9f9f9")
+            AxisLabels[AxisItem].configure(activeforeground="black")
+            AxisLabels[AxisItem].configure(anchor='e')
+            AxisLabels[AxisItem].configure(background="#ffffff")
+            AxisLabels[AxisItem].configure(font="-family {Arial} -size 30")
+            AxisLabels[AxisItem].configure(foreground="#000000")
+            AxisLabels[AxisItem].configure(highlightbackground="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightcolor="black")
+            AxisLabels[AxisItem].configure(text=str(AxisArray[str(AxisNumbers[AxisOffset-1])][0]))
 
-        self.AxisTitle = tk.Label(self.AxisFm1)
-        self.AxisTitle.place(relx=0.0, rely=0.0, height=20, width=410)
-        self.AxisTitle.configure(activebackground="#f9f9f9")
-        self.AxisTitle.configure(activeforeground="black")
-        self.AxisTitle.configure(anchor='w')
-        self.AxisTitle.configure(background="#bcbcbc")
-        self.AxisTitle.configure(font="-family {Arial} -size 16 -weight bold")
-        self.AxisTitle.configure(foreground="#000000")
-        self.AxisTitle.configure(highlightbackground="#d9d9d9")
-        self.AxisTitle.configure(highlightcolor="black")
-        self.AxisTitle.configure(padx="25")
-        self.AxisTitle.configure(text='''Axis 1: Full Black''')
+            AxisItem += 1
+            AxisLabels.append(tk.Label(AxisLabels[0]))
+            AxisLabels[AxisItem].place(relx=0.439, rely=0.364, height=35, width=159)
+            AxisLabels[AxisItem].configure(activebackground="#000000")
+            AxisLabels[AxisItem].configure(activeforeground="white")
+            AxisLabels[AxisItem].configure(activeforeground="black")
+            AxisLabels[AxisItem].configure(anchor='e')
+            AxisLabels[AxisItem].configure(background="#000000")
+            AxisLabels[AxisItem].configure(font="-family {Arial} -size 30")
+            AxisLabels[AxisItem].configure(foreground="#ffffff")
+            AxisLabels[AxisItem].configure(highlightbackground="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightcolor="black")
+            AxisLabels[AxisItem].configure(text='''0 mm/s''')
 
-        self.AxisTime = tk.Label(self.AxisFm1)
-        self.AxisTime.place(relx=0.829, rely=0.364, height=35, width=71)
-        self.AxisTime.configure(activebackground="#f9f9f9")
-        self.AxisTime.configure(activeforeground="black")
-        self.AxisTime.configure(anchor='se')
-        self.AxisTime.configure(background="#d9d9d9")
-        self.AxisTime.configure(font="-family {Arial} -size 24")
-        self.AxisTime.configure(foreground="#000000")
-        self.AxisTime.configure(highlightbackground="#d9d9d9")
-        self.AxisTime.configure(highlightcolor="black")
-        self.AxisTime.configure(text='''0s''')
+            AxisItem += 1
+            AxisLabels.append(tk.Label(AxisLabels[0]))
+            AxisLabels[AxisItem].place(relx=0.0, rely=0.0, height=20, width=410)
+            AxisLabels[AxisItem].configure(activebackground="#f9f9f9")
+            AxisLabels[AxisItem].configure(activeforeground="black")
+            AxisLabels[AxisItem].configure(anchor='w')
+            AxisLabels[AxisItem].configure(background="#bcbcbc")
+            AxisLabels[AxisItem].configure(font="-family {Arial} -size 16 -weight bold")
+            AxisLabels[AxisItem].configure(foreground="#000000")
+            AxisLabels[AxisItem].configure(highlightbackground="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightcolor="black")
+            AxisLabels[AxisItem].configure(padx="25")
+            AxisLabels[AxisItem].configure(text=AxisNames[AxisOffset-1])
 
-        self.AxisFm1_10 = tk.Frame(self.MCC1)
-        self.AxisFm1_10.place(relx=0.012, rely=0.088, relheight=0.064
-                , relwidth=0.482, bordermode='ignore')
-        self.AxisFm1_10.configure(relief='flat')
-        self.AxisFm1_10.configure(borderwidth="2")
-        self.AxisFm1_10.configure(background="#00ff00")
-        self.AxisFm1_10.configure(highlightbackground="#d9d9d9")
-        self.AxisFm1_10.configure(highlightcolor="black")
+            AxisItem += 1
+            AxisLabels.append(tk.Label(AxisLabels[0]))
+            AxisLabels[AxisItem].place(relx=0.829, rely=0.364, height=35, width=71)
+            AxisLabels[AxisItem].configure(activebackground="#f9f9f9")
+            AxisLabels[AxisItem].configure(activeforeground="black")
+            AxisLabels[AxisItem].configure(anchor='se')
+            AxisLabels[AxisItem].configure(background="#d9d9d9")
+            AxisLabels[AxisItem].configure(font="-family {Arial} -size 24")
+            AxisLabels[AxisItem].configure(foreground="#000000")
+            AxisLabels[AxisItem].configure(highlightbackground="#d9d9d9")
+            AxisLabels[AxisItem].configure(highlightcolor="black")
+            AxisLabels[AxisItem].configure(text='''0s''')
 
-        self.AxisNum_11 = tk.Label(self.AxisFm1_10)
-        self.AxisNum_11.place(relx=0.0, rely=0.364, height=35, width=40)
-        self.AxisNum_11.configure(activebackground="#f9f9f9")
-        self.AxisNum_11.configure(activeforeground="black")
-        self.AxisNum_11.configure(background="#000000")
-        self.AxisNum_11.configure(font="-family {Arial} -size 30")
-        self.AxisNum_11.configure(foreground="#ffff00")
-        self.AxisNum_11.configure(highlightbackground="#d9d9d9")
-        self.AxisNum_11.configure(highlightcolor="black")
-        self.AxisNum_11.configure(text='''2:''')
-
-        self.AxisPosition_12 = tk.Label(self.AxisFm1_10)
-        self.AxisPosition_12.place(relx=0.098, rely=0.364, height=35, width=140)
-        self.AxisPosition_12.configure(activebackground="#f9f9f9")
-        self.AxisPosition_12.configure(activeforeground="black")
-        self.AxisPosition_12.configure(anchor='e')
-        self.AxisPosition_12.configure(background="#ffffff")
-        self.AxisPosition_12.configure(font="-family {Arial} -size 30")
-        self.AxisPosition_12.configure(foreground="#000000")
-        self.AxisPosition_12.configure(highlightbackground="#d9d9d9")
-        self.AxisPosition_12.configure(highlightcolor="black")
-        self.AxisPosition_12.configure(text='''10858mm''')
-
-        self.AxisSpeed_13 = tk.Label(self.AxisFm1_10)
-        self.AxisSpeed_13.place(relx=0.439, rely=0.364, height=35, width=159)
-        self.AxisSpeed_13.configure(activebackground="#f9f9f9")
-        self.AxisSpeed_13.configure(activeforeground="black")
-        self.AxisSpeed_13.configure(anchor='e')
-        self.AxisSpeed_13.configure(background="#000000")
-        self.AxisSpeed_13.configure(font="-family {Arial} -size 30")
-        self.AxisSpeed_13.configure(foreground="#ffffff")
-        self.AxisSpeed_13.configure(highlightbackground="#d9d9d9")
-        self.AxisSpeed_13.configure(highlightcolor="black")
-        self.AxisSpeed_13.configure(text='''300 mm/s''')
-
-        self.AxisTitle_14 = tk.Label(self.AxisFm1_10)
-        self.AxisTitle_14.place(relx=0.0, rely=0.0, height=20, width=410)
-        self.AxisTitle_14.configure(activebackground="#f9f9f9")
-        self.AxisTitle_14.configure(activeforeground="black")
-        self.AxisTitle_14.configure(anchor='w')
-        self.AxisTitle_14.configure(background="#00ff00")
-        self.AxisTitle_14.configure(font="-family {Arial} -size 16 -weight bold")
-        self.AxisTitle_14.configure(foreground="#000000")
-        self.AxisTitle_14.configure(highlightbackground="#d9d9d9")
-        self.AxisTitle_14.configure(highlightcolor="black")
-        self.AxisTitle_14.configure(padx="25")
-        self.AxisTitle_14.configure(text='''Axis 2: House Tabs ............. ! ! ! ! ! MOVING ! ! ! !''')
-
-        self.AxisTime_15 = tk.Label(self.AxisFm1_10)
-        self.AxisTime_15.place(relx=0.829, rely=0.364, height=35, width=71)
-        self.AxisTime_15.configure(activebackground="#f9f9f9")
-        self.AxisTime_15.configure(activeforeground="black")
-        self.AxisTime_15.configure(anchor='se')
-        self.AxisTime_15.configure(background="#d9d9d9")
-        self.AxisTime_15.configure(font="-family {Arial} -size 24")
-        self.AxisTime_15.configure(foreground="#000000")
-        self.AxisTime_15.configure(highlightbackground="#d9d9d9")
-        self.AxisTime_15.configure(highlightcolor="black")
-        self.AxisTime_15.configure(text='''3.6s''')
-
-        self.AxisFm1_1 = tk.Frame(self.MCC1)
-        self.AxisFm1_1.place(relx=0.012, rely=0.152, relheight=0.064
-                , relwidth=0.482, bordermode='ignore')
-        self.AxisFm1_1.configure(relief='flat')
-        self.AxisFm1_1.configure(borderwidth="2")
-        self.AxisFm1_1.configure(background="#d9d9d9")
-        self.AxisFm1_1.configure(highlightbackground="#d9d9d9")
-        self.AxisFm1_1.configure(highlightcolor="black")
-
-        self.AxisNum_2 = tk.Label(self.AxisFm1_1)
-        self.AxisNum_2.place(relx=0.0, rely=0.364, height=35, width=40)
-        self.AxisNum_2.configure(activebackground="#f9f9f9")
-        self.AxisNum_2.configure(activeforeground="black")
-        self.AxisNum_2.configure(background="#000000")
-        self.AxisNum_2.configure(font="-family {Arial} -size 30")
-        self.AxisNum_2.configure(foreground="#ffff00")
-        self.AxisNum_2.configure(highlightbackground="#d9d9d9")
-        self.AxisNum_2.configure(highlightcolor="black")
-        self.AxisNum_2.configure(text='''3:''')
-
-        self.AxisPosition_3 = tk.Label(self.AxisFm1_1)
-        self.AxisPosition_3.place(relx=0.098, rely=0.364, height=35, width=140)
-        self.AxisPosition_3.configure(activebackground="#f9f9f9")
-        self.AxisPosition_3.configure(activeforeground="black")
-        self.AxisPosition_3.configure(anchor='e')
-        self.AxisPosition_3.configure(background="#ffffff")
-        self.AxisPosition_3.configure(font="-family {Arial} -size 30")
-        self.AxisPosition_3.configure(foreground="#000000")
-        self.AxisPosition_3.configure(highlightbackground="#d9d9d9")
-        self.AxisPosition_3.configure(highlightcolor="black")
-        self.AxisPosition_3.configure(text='''6500mm''')
-
-        self.AxisSpeed_4 = tk.Label(self.AxisFm1_1)
-        self.AxisSpeed_4.place(relx=0.439, rely=0.364, height=35, width=159)
-        self.AxisSpeed_4.configure(activebackground="#000000")
-        self.AxisSpeed_4.configure(activeforeground="white")
-        self.AxisSpeed_4.configure(activeforeground="black")
-        self.AxisSpeed_4.configure(anchor='e')
-        self.AxisSpeed_4.configure(background="#000000")
-        self.AxisSpeed_4.configure(font="-family {Arial} -size 30")
-        self.AxisSpeed_4.configure(foreground="#ffffff")
-        self.AxisSpeed_4.configure(highlightbackground="#d9d9d9")
-        self.AxisSpeed_4.configure(highlightcolor="black")
-        self.AxisSpeed_4.configure(text='''0 mm/s''')
-
-        self.AxisTitle_5 = tk.Label(self.AxisFm1_1)
-        self.AxisTitle_5.place(relx=0.0, rely=0.0, height=20, width=410)
-        self.AxisTitle_5.configure(activebackground="#f9f9f9")
-        self.AxisTitle_5.configure(activeforeground="black")
-        self.AxisTitle_5.configure(anchor='w')
-        self.AxisTitle_5.configure(background="#bcbcbc")
-        self.AxisTitle_5.configure(font="-family {Arial} -size 16 -weight bold")
-        self.AxisTitle_5.configure(foreground="#000000")
-        self.AxisTitle_5.configure(highlightbackground="#d9d9d9")
-        self.AxisTitle_5.configure(highlightcolor="black")
-        self.AxisTitle_5.configure(padx="25")
-        self.AxisTitle_5.configure(text='''Axis 3: Header''')
-
-        self.AxisTime_6 = tk.Label(self.AxisFm1_1)
-        self.AxisTime_6.place(relx=0.829, rely=0.364, height=35, width=71)
-        self.AxisTime_6.configure(activebackground="#f9f9f9")
-        self.AxisTime_6.configure(activeforeground="black")
-        self.AxisTime_6.configure(anchor='se')
-        self.AxisTime_6.configure(background="#d9d9d9")
-        self.AxisTime_6.configure(font="-family {Arial} -size 24")
-        self.AxisTime_6.configure(foreground="#000000")
-        self.AxisTime_6.configure(highlightbackground="#d9d9d9")
-        self.AxisTime_6.configure(highlightcolor="black")
-        self.AxisTime_6.configure(text='''0s''')
+            AxisOffset += 1
 
         self.Status = tk.LabelFrame(self.Master_Container)
         self.Status.place(relx=0.006, rely=0.898, relheight=0.087
@@ -334,21 +223,23 @@ class MainWindow:
         self.Scrolledlistbox1.configure(selectbackground="#c4c4c4")
         self.Scrolledlistbox1.configure(selectforeground="black")
 
-        self.MCC2 = tk.LabelFrame(self.Master_Container)
-        self.MCC2.place(relx=0.503, rely=0.02, relheight=0.872, relwidth=0.491)
-        self.MCC2.configure(relief='groove')
-        self.MCC2.configure(foreground="#ffffff")
-        self.MCC2.configure(text='''MCC 2''')
-        self.MCC2.configure(background="#000066")
-        self.MCC2.configure(highlightbackground="#d9d9d9")
-        self.MCC2.configure(highlightcolor="black")
-
         self.Label1 = tk.Label(top)
         self.Label1.place(relx=0.006, rely=0.968, height=22, width=1433)
         self.Label1.configure(background="#550000")
         self.Label1.configure(foreground="#aaaaaa")
         self.Label1.configure(text='''Developed by James Cooper for the Guildhall School of Music and Drama. Not working? Contact james@jcooper.tech. This system should not be relied upon for show or safety critical purposes. System provided as is, with no guarantee.''')
 
+
+    def update_axes(self, AxesList=None, ):
+        UpdateQuantArr = self.QuantifiedArray
+        Axis35 = list(getSpecificAxisData(UpdateQuantArr, 35))
+        self.AxisPosition_3.configure(text=str(Axis35[0])+"mm")
+        print(Axis35)
+
+    def updater(self):
+        self.QuantifiedArray = read_main()
+        self.update_axes()
+        root.after(1, MainWindow.updater(self))
 
 
 # The following code is added to facilitate the Scrolled widgets you specified.
