@@ -22,12 +22,15 @@ __maintainer__ = "James Cooper"
 __email__ = "james@jcooper.tech"
 __status__ = "Development"
 
+
 import sys
+
 
 try:
     import Tkinter as tk
 except ImportError:
     import tkinter as tk
+
 
 try:
     import ttk
@@ -39,6 +42,7 @@ except ImportError:
 import GUI_support
 from read import read_main
 
+
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
     global val, w, root
@@ -46,6 +50,7 @@ def vp_start_gui():
     top = MainWindow (root)
     GUI_support.init(root, top)
     root.mainloop()
+
 
 w = None
 def create_MainWindow(root, *args, **kwargs):
@@ -57,13 +62,20 @@ def create_MainWindow(root, *args, **kwargs):
     GUI_support.init(w, top, *args, **kwargs)
     return (w, top)
 
+
 def destroy_MainWindow():
     global w
     w.destroy()
     w = None
 
+
 class MainWindow:
+
     def __init__(self, top=None):
+        def updater():
+            print("updater running")
+            top.after(0,updater)
+
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
         _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
@@ -78,9 +90,10 @@ class MainWindow:
         self.style.configure('.',foreground=_fgcolor)
         self.style.map('.',background=
             [('selected', _compcolor), ('active',_ana2color)])
-
-        top.geometry("1737x1023+55+23")
-        top.minsize(72, 15)
+        pad = 3
+        top.geometry("{0}x{1}+0+0".format(
+            top.winfo_screenwidth()-pad, top.winfo_screenheight()-pad))
+        top.minsize(0, 0)
         top.maxsize(2000, 1500)
         top.resizable(1, 1)
         top.title("Autoread: Milton Court Theatre")
@@ -90,8 +103,8 @@ class MainWindow:
         top.configure(highlightcolor="black")
 
         self.Master_Container = tk.Frame(top)
-        self.Master_Container.place(relx=0.006, rely=0.01, relheight=0.958
-                , relwidth=0.996)
+        self.Master_Container.place(x=12, y=12, relheight=0.958
+                , relwidth=0.988)
         self.Master_Container.configure(relief='flat')
         self.Master_Container.configure(borderwidth="1")
         self.Master_Container.configure(background="#000000")
@@ -109,13 +122,12 @@ class MainWindow:
                 AxisNames = list(file.readlines())
             for line in AxisNames:
                 AxisNames[AxisNames.index(line)] = line.replace("\n","")
-                print(AxisNames)
             return AxisNames
 
         AxisNames = importAxisNames()
 
         self.MCC1 = tk.LabelFrame(self.Master_Container)
-        self.MCC1.place(relx=0.006, rely=0.02, relheight=0.872, relwidth=0.98)
+        self.MCC1.place(x=12, y=12, relheight=0.872, relwidth=0.98)
         self.MCC1.configure(relief='groove')
         self.MCC1.configure(foreground="#ffffff")
         self.MCC1.configure(text='''Milton Court Theatre''')
@@ -134,16 +146,16 @@ class MainWindow:
             VertSpacing = 75
             """Insert frame for item."""
             if AxisOffset % 4 == 1:
-                AxisLabels[AxisItem].place(x=10, y=17*((AxisOffset*4)-(AxisOffset * 3))+17, relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=10, y=17*((AxisOffset*4)-(AxisOffset * 3))+17, height=60 #rely=0.023
                         , width=400, bordermode='ignore')
             elif AxisOffset % 4 == 2:
-                AxisLabels[AxisItem].place(x=430, y=17*((AxisOffset*4)-(AxisOffset * 3)), relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=430, y=17*((AxisOffset*4)-(AxisOffset * 3)), height=60 #rely=0.023
                         , width=400, bordermode='ignore')
             elif AxisOffset % 4 == 3:
-                AxisLabels[AxisItem].place(x=850, y=17*((AxisOffset*4)-(AxisOffset * 3))-17, relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=850, y=17*((AxisOffset*4)-(AxisOffset * 3))-17, height=60 #rely=0.023
                         , width=400, bordermode='ignore')
             elif AxisOffset % 4 == 0:
-                AxisLabels[AxisItem].place(x=1270, y=17*((AxisOffset*4)-(AxisOffset * 3))-(17*2), relheight=0.064 #rely=0.023
+                AxisLabels[AxisItem].place(x=1270, y=17*((AxisOffset*4)-(AxisOffset * 3))-(17*2), height=60 #rely=0.023
                         , width=400, bordermode='ignore')
 
             AxisLabels[AxisItem].configure(relief='flat')
@@ -221,7 +233,7 @@ class MainWindow:
             AxisOffset += 1
 
         self.Status = tk.LabelFrame(self.Master_Container)
-        self.Status.place(relx=0.006, rely=0.898, relheight=0.087
+        self.Status.place(relx=0.006, rely=0.898, height=70
                 , relwidth=0.988)
         self.Status.configure(relief='groove')
         self.Status.configure(foreground="#ffffff")
@@ -248,16 +260,6 @@ class MainWindow:
         self.Label1.configure(text='''Developed by James Cooper for the Guildhall School of Music and Drama. Not working? Contact james@jcooper.tech. This system should not be relied upon for show or safety critical purposes. System provided as is, with no guarantee.''')
 
 
-    def update_axes(self, AxesList=None, ):
-        UpdateQuantArr = self.QuantifiedArray
-        Axis35 = list(getSpecificAxisData(UpdateQuantArr, 35))
-        self.AxisPosition_3.configure(text=str(Axis35[0])+"mm")
-
-
-    def updater(self):
-        self.QuantifiedArray = read_main()
-        self.update_axes()
-        root.after(1, MainWindow.updater(self))
 
 
 # The following code is added to facilitate the Scrolled widgets you specified.
