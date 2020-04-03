@@ -1,7 +1,5 @@
 import COM_LED
 import COM_CONFIG
-import RPi.GPIO as GPIO
-import time
 
 # AutoRead Project - GPIO LED Test
 
