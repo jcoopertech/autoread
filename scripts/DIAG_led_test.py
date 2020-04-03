@@ -34,7 +34,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        AR_LED.checkimport()
+        COM_LED.checkimport()
         setupGPIO(LED_def)
         main()
         input("Press enter to continue")
