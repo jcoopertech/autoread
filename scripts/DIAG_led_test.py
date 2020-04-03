@@ -1,5 +1,5 @@
 import COM_LED
-from COM_CONFIG import *
+import COM_CONFIG
 import RPi.GPIO as GPIO
 import time
 
