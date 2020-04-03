@@ -1,4 +1,4 @@
-import ../common/LED as AR_LED
+from COM_LED import * as AR_LED
 
 import RPi.GPIO as GPIO
 import time
