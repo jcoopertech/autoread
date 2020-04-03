@@ -1,4 +1,7 @@
-# AutoRead
+# AutoRead Motion Integration
+
+<img src="http://iow.jcooper.tech/wp-content/uploads/2020/03/Sticker-Design_Logo-768x228.png"
+     alt="AutoRead Logo" height="100px" />
 
 This software displays winch position and status from TAIT (formerly Stage Technologies) eChameleon entertainment automation systems, built upon the Siemens Simotion architecture.
 
