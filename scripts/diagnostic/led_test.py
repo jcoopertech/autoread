@@ -1,3 +1,5 @@
+import /common/LED as AR_LED
+
 import RPi.GPIO as GPIO
 import time
 
@@ -32,8 +34,11 @@ def main():
 
 if __name__ == "__main__":
     try:
+        AR_LED.checkimport()
         setupGPIO(LED_def)
         main()
+        input("Press enter to continue")
+        GPIO.cleanup()
     except:
         print("Error condition")
         for key, value in LED_def:
