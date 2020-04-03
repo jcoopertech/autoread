@@ -1,3 +1,5 @@
+import ../common/LED as AR_LED
+
 import RPi.GPIO as GPIO
 import time
 
@@ -5,8 +7,6 @@ import time
 
 # Note these are header pins 16 and 18 - GPIO23 and GPIO24
 LED_def = {"led1":16,"led2":18}
-
-#LED["led1"] = 16
 
 
 def setupGPIO(LED_def):
@@ -34,7 +34,15 @@ def main():
 
 if __name__ == "__main__":
     try:
+        AR_LED.checkimport()
         setupGPIO(LED_def)
         main()
-    except:
+        input("Press enter to continue")
         GPIO.cleanup()
+    except:
+        print("Error condition")
+        for key, value in LED_def:
+            GPIO_OFF(value)
+        print("cleaning up GPIO")
+        GPIO.cleanup()
+        raise
