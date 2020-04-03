@@ -16,7 +16,8 @@ def GPIO_OFF(Channel):
     print("COM_LED.py: Pin {0} is LOW".format(Channel))
 
 
-def setupGPIO(LED_def):
+def setupGPIO(LED_def=COM_CONFIG.LED_def):
+    """By default, read GPIO pins from COM_CONFIG"""
     GPIO.setmode(GPIO.BOARD)
     for key, value in COM_CONFIG.LED_def.items():
         GPIO.setup(value, GPIO.OUT)

@@ -13,7 +13,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        COM_LED.setupGPIO(LED_def)
+        COM_LED.setupGPIO()
         main()
         input("Press enter to continue")
         GPIO.cleanup()
