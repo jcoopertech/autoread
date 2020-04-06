@@ -2,24 +2,7 @@
 # - Run in a py3 environment.
 # No additional packages required, only using py standard lib.
 
-__doc__ = """
-This software takes UDP readouts from TAIT Stage Tech's eChameleon software, and
-translates it into useful things.
-Originally written for the Guildhall School of Music and Drama by James Cooper,
-whilst studying on the BA Hons Technical Theatre Arts course.
-"""
-
-
-__author__ = "James Cooper"
-__copyright__ = "Copyright 2019, James Cooper"
-__credits__ = ["James Cooper"]
-__license__ = "GNU AGPLv3"
-__version__ = "0.1.0"
-__maintainer__ = "James Cooper"
-__email__ = "james@jcooper.tech"
-__status__ = "Development"
-
-
+import COM_CONFIG
 import socket
 import struct
 
@@ -29,32 +12,13 @@ _debug_ = False
 # Set up instance, this is possibly unique to our environment.
 
 if not _debug_:
-    UDP_IP = "172.16.1.255"
-    UDP_PORT = 30501
+    COM_CONFIG.UDP_IP = "172.16.1.255"
+    COM_CONFIG.UDP_PORT = 30501
 
-
-# Generally, leave these, unless TAIT has changed their packet structure.
-LENGTH_HEADER = 24 # How long is the header of each packet?
-# NB: PacketHeader does not refer to the IP stack header, it refers to part of
-# the payload before axisData
-ATTR_PER_AXIS = 5 # How many attributes per axis?
 
 Data_Table = {}
 
-# Format: Node,Channel,Axis
-axisNodeChannels = [
-[1, 1, 20],[1, 2, 22],[1, 3, 24],[1, 4, 26],
-[1, 5, 28],[1, 6, 30],[1, 7, 32],[1, 8, 35],
-[1, 9, 41],[1, 10, 42],[1, 11, 43],[1, 12, 44],
-[1, 13, 45],[1, 14, 46],[1, 15, 91],[1, 16, 92],
-[1, 17, 93],[2, 1, 1],[2, 2, 2],[2, 3, 5],
-[2, 4, 7],[2, 5, 9],[2, 6, 11],[2, 7, 13],
-[2, 8, 15],[2, 9, 17],[2, 10, 19],[2, 11, 21],
-[2, 12, 23],[2, 13, 25],[2, 14, 27],[2, 15, 29],
-[2, 16, 31],[2, 17, 33],[2, 18, 34],[2, 19, 3],
-[2, 20, 4],[2, 21, 6],[2, 22, 8],[2, 23, 10],
-[2, 24, 12],[2, 25, 14],[2, 26, 16],[2, 27, 18],
-[3, 1, 81],[3, 2, 82]]
+
 
 ## Function definitions
 # NB: Function doAxisDataParsing removed, was redundant and unused.
@@ -65,8 +29,8 @@ def parseAxisData(axisDataList, axis):
     # Make this similar to parsePacketHeaderData, tip. Use ">B", for interpreting the BYTE length values.
     # Make this go the other way in another function, to grab every fifth attribute from axisDataList, starting from StatusCode, to get each status, and search by status for each bar. Potentially look into making each Axis an Axis() object, make custom class.
     returnArray = []
-    for attr in range(ATTR_PER_AXIS):
-        returnArray.append(axisDataList[axis*ATTR_PER_AXIS+attr])
+    for attr in range(COM_CONFIG.ATTR_PER_AXIS):
+        returnArray.append(axisDataList[axis*COM_CONFIG.ATTR_PER_AXIS+attr])
     return axis, returnArray
 
 
@@ -108,7 +72,7 @@ def inDataTable(AxisClassArray, data):
     packet = {}
     packet["Packet Header"] = parsePacketHeader(data)
     NodeNo = Packet["Packet Header"]["head1"]
-    Packet["axisData"] = data[24:]
+    Packet["axisData"] = data[COM_CONFIG.LENGTH_HEADER:]
     iteration = 0
     for axis in range(packet["PacketHeader"]["head2"]):
         AxisClassArray.append(Axis(breakdownThisAxis(Packet["AxisData"]), iteration))
@@ -117,45 +81,33 @@ def inDataTable(AxisClassArray, data):
 
 
 def intoDataTable(addr,data):
-    """
-    Note to self: at some point, try to re-work this, so we're not relying on
-    IP, and instead, use head1 - Simotion Node No. - as these are also uniqueish
-    Probably do a range check - as otherwise, it's looking at a broadcast packet
-    from any IP... which will cause issues.
-    """
-# See below original code, but the IPI doesn't actually matter as we're already passed PLC Node Number in each packet.
+# See below original code, but the IP doesn't actually matter as we're already passed PLC Node Number in each packet.
     PacketHeader = parsePacketHeaderData(data)
-    for axis in range(PacketHeader["head2"]):
 #        print("packet header node no")
 #        print(PacketHeader["head1"])
-        #Break down the header information for each packet
-        dataTable = parsePacketHeaderData(data)
-        # Now only look at axisData section of the Packet
-        axisData = data[24:]
-        axisCount = 1
-        for axis in range(dataTable["head2"]): #Look up headData2 from the PacketHeader
-            for combin in axisNodeChannels:
-                if combin[0] == PacketHeader["head1"] and combin[1] == axisCount:
-                    axNoCh = combin[2]
+    #Break down the header information for each packet
+    #dataTable = parsePacketHeaderData(data)
+    dataTable = PacketHeader
+    # Now only look at axisData section of the Packet
+    axisData = data[COM_CONFIG.LENGTH_HEADER:]
+    axisCount = COM_CONFIG.FirstEChamAxis
+    for axis in range(dataTable["head2"]): #Look up headData2 from the PacketHeader
+        for combin in COM_CONFIG.axisNodeChannels:
+            if combin[0] == PacketHeader["head1"] and combin[1] == axisCount:
+                axNoCh = combin[2]
 #                    print(axNoCh)
-            # Here you do the raw offset looping through the axes with the unpacking of the offset bits stuff.
-            thisAxis = breakdownThisAxis(axisData)
-            #dataTablePLC1["axisData"].append(thisAxis)
-            axisData = axisData[14:]
-            dataTable["axisData"].append(thisAxis)
+        # Here you do the raw offset looping through the axes with the unpacking of the offset bits stuff.
+        thisAxis = breakdownThisAxis(axisData)
+        #dataTablePLC1["axisData"].append(thisAxis)
+        axisData = axisData[14:]
+        dataTable["axisData"].append(thisAxis)
 #            print("axisNodeChannels: [{1}]: This axis: {0}".format(thisAxis,axNoCh))
-            axisCount += 1
-            Data_Table[str(axNoCh)] = thisAxis
-        return dataTable
+        axisCount += 1
+        Data_Table[str(axNoCh)] = thisAxis
+    return dataTable
 
 
-def addToExistingAxisArray(AxisArrayOld,AxisArrayNew):
-    for item in AxisArrayOld:
-        if item[0] == AxisArrayNew[AxisArrayOld.index(item)]:
-            print("I exist already")
-
-
-def sortAxisData_Table(Data_Table, AxisArray):
+def sortAxisData_Table(Data_Table):
     QuantifiedArray = []
     AxisMasterOrder = sorted(Data_Table, key = lambda x : int(x.split()[0]))
     for axis in AxisMasterOrder:
@@ -183,16 +135,15 @@ def convertAxisArraytoDictionary(AxisArray):
     AxDict = {}
     for item in AxisArray:
         AxDict[item[0]] = tuple(item[1])
-    return(AxDict)
+    return AxDict
 
 def read_main():
     # Set up UDP receiving ports
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((UDP_IP, UDP_PORT))
+    sock.bind((COM_CONFIG.UDP_IP, COM_CONFIG.UDP_PORT))
     # This is the main polling loop of the program, to get each and every UDP data packet.
     Node1Get = False
     Node2Get = False
-    AxisArray=[]
     """When using Tkinter, this code should be called by the
     'after' method. Our system sends packets every 50ms per node."""
     # Output the raw UDP data and src addr.
@@ -201,7 +152,7 @@ def read_main():
         data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
 
         NodeOutput = intoDataTable(addr,data)
-        AxisArray = sortAxisData_Table(Data_Table, AxisArray)
+        AxisArray = sortAxisData_Table(Data_Table)
         if NodeOutput["head1"] == 1:
             Node1Get = True
         if NodeOutput["head1"] == 2:
