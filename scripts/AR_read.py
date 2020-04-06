@@ -19,7 +19,7 @@ __maintainer__ = "James Cooper"
 __email__ = "james@jcooper.tech"
 __status__ = "Development"
 
-
+import COM_CONFIG
 import socket
 import struct
 
@@ -29,32 +29,13 @@ _debug_ = False
 # Set up instance, this is possibly unique to our environment.
 
 if not _debug_:
-    UDP_IP = "172.16.1.255"
-    UDP_PORT = 30501
+    COM_CONFIG.UDP_IP = "172.16.1.255"
+    COM_CONFIG.UDP_PORT = 30501
 
-
-# Generally, leave these, unless TAIT has changed their packet structure.
-LENGTH_HEADER = 24 # How long is the header of each packet?
-# NB: PacketHeader does not refer to the IP stack header, it refers to part of
-# the payload before axisData
-ATTR_PER_AXIS = 5 # How many attributes per axis?
 
 Data_Table = {}
 
-# Format: Node,Channel,Axis
-axisNodeChannels = [
-[1, 1, 20],[1, 2, 22],[1, 3, 24],[1, 4, 26],
-[1, 5, 28],[1, 6, 30],[1, 7, 32],[1, 8, 35],
-[1, 9, 41],[1, 10, 42],[1, 11, 43],[1, 12, 44],
-[1, 13, 45],[1, 14, 46],[1, 15, 91],[1, 16, 92],
-[1, 17, 93],[2, 1, 1],[2, 2, 2],[2, 3, 5],
-[2, 4, 7],[2, 5, 9],[2, 6, 11],[2, 7, 13],
-[2, 8, 15],[2, 9, 17],[2, 10, 19],[2, 11, 21],
-[2, 12, 23],[2, 13, 25],[2, 14, 27],[2, 15, 29],
-[2, 16, 31],[2, 17, 33],[2, 18, 34],[2, 19, 3],
-[2, 20, 4],[2, 21, 6],[2, 22, 8],[2, 23, 10],
-[2, 24, 12],[2, 25, 14],[2, 26, 16],[2, 27, 18],
-[3, 1, 81],[3, 2, 82]]
+
 
 ## Function definitions
 # NB: Function doAxisDataParsing removed, was redundant and unused.
@@ -65,8 +46,8 @@ def parseAxisData(axisDataList, axis):
     # Make this similar to parsePacketHeaderData, tip. Use ">B", for interpreting the BYTE length values.
     # Make this go the other way in another function, to grab every fifth attribute from axisDataList, starting from StatusCode, to get each status, and search by status for each bar. Potentially look into making each Axis an Axis() object, make custom class.
     returnArray = []
-    for attr in range(ATTR_PER_AXIS):
-        returnArray.append(axisDataList[axis*ATTR_PER_AXIS+attr])
+    for attr in range(COM_CONFIG.ATTR_PER_AXIS):
+        returnArray.append(axisDataList[axis*COM_CONFIG.ATTR_PER_AXIS+attr])
     return axis, returnArray
 
 
@@ -108,7 +89,7 @@ def inDataTable(AxisClassArray, data):
     packet = {}
     packet["Packet Header"] = parsePacketHeader(data)
     NodeNo = Packet["Packet Header"]["head1"]
-    Packet["axisData"] = data[24:]
+    Packet["axisData"] = data[COM_CONFIG.LENGTH_HEADER:]
     iteration = 0
     for axis in range(packet["PacketHeader"]["head2"]):
         AxisClassArray.append(Axis(breakdownThisAxis(Packet["AxisData"]), iteration))
@@ -123,13 +104,14 @@ def intoDataTable(addr,data):
     Probably do a range check - as otherwise, it's looking at a broadcast packet
     from any IP... which will cause issues.
     """
-# See below original code, but the IPI doesn't actually matter as we're already passed PLC Node Number in each packet.
+# See below original code, but the IP doesn't actually matter as we're already passed PLC Node Number in each packet.
     PacketHeader = parsePacketHeaderData(data)
     for axis in range(PacketHeader["head2"]):
 #        print("packet header node no")
 #        print(PacketHeader["head1"])
         #Break down the header information for each packet
         dataTable = parsePacketHeaderData(data)
+        """Consider why we're calling parsePacketHeader twice. I think it's unneccesary"""
         # Now only look at axisData section of the Packet
         axisData = data[24:]
         axisCount = 1
@@ -188,7 +170,7 @@ def convertAxisArraytoDictionary(AxisArray):
 def read_main():
     # Set up UDP receiving ports
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((UDP_IP, UDP_PORT))
+    sock.bind((COM_CONFIG.UDP_IP, COM_CONFIG.UDP_PORT))
     # This is the main polling loop of the program, to get each and every UDP data packet.
     Node1Get = False
     Node2Get = False
