@@ -13,7 +13,6 @@ UDP_PORT = 30501
 LENGTH_HEADER = 24 # How many bytes long is the head1..head4 section of the simotion packet.
 ATTR_PER_AXIS = 5 # How many data points are being sent per axis? Important because of how we interpret the packet.
 
-"Axis Node Channels"
 # Map your eCham Axis to the Node/Channel format.
 # Format: Node,Channel,Axis
 axisNodeChannels = [
@@ -29,6 +28,10 @@ axisNodeChannels = [
 [2, 20, 4],[2, 21, 6],[2, 22, 8],[2, 23, 10],
 [2, 24, 12],[2, 25, 14],[2, 26, 16],[2, 27, 18],
 [3, 1, 81],[3, 2, 82]]
+
+# This saves on computing time - if the starting axis in eCham is nowhere near 1
+FirstEChamAxis = 1 #Default should be 1 though.
+
 
 """AutoRead (Track) Settings"""
 

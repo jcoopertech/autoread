@@ -2,23 +2,6 @@
 # - Run in a py3 environment.
 # No additional packages required, only using py standard lib.
 
-__doc__ = """
-This software takes UDP readouts from TAIT Stage Tech's eChameleon software, and
-translates it into useful things.
-Originally written for the Guildhall School of Music and Drama by James Cooper,
-whilst studying on the BA Hons Technical Theatre Arts course.
-"""
-
-
-__author__ = "James Cooper"
-__copyright__ = "Copyright 2019, James Cooper"
-__credits__ = ["James Cooper"]
-__license__ = "GNU AGPLv3"
-__version__ = "0.1.0"
-__maintainer__ = "James Cooper"
-__email__ = "james@jcooper.tech"
-__status__ = "Development"
-
 import COM_CONFIG
 import socket
 import struct
@@ -100,38 +83,31 @@ def inDataTable(AxisClassArray, data):
 def intoDataTable(addr,data):
 # See below original code, but the IP doesn't actually matter as we're already passed PLC Node Number in each packet.
     PacketHeader = parsePacketHeaderData(data)
-    for axis in range(PacketHeader["head2"]):
 #        print("packet header node no")
 #        print(PacketHeader["head1"])
-        #Break down the header information for each packet
-        #dataTable = parsePacketHeaderData(data)
-        dataTable = PacketHeader
-        # Now only look at axisData section of the Packet
-        axisData = data[24:]
-        axisCount = 1
-        for axis in range(dataTable["head2"]): #Look up headData2 from the PacketHeader
-            for combin in axisNodeChannels:
-                if combin[0] == PacketHeader["head1"] and combin[1] == axisCount:
-                    axNoCh = combin[2]
+    #Break down the header information for each packet
+    #dataTable = parsePacketHeaderData(data)
+    dataTable = PacketHeader
+    # Now only look at axisData section of the Packet
+    axisData = data[COM_CONFIG.LENGTH_HEADER:]
+    axisCount = COM_CONFIG.FirstEChamAxis
+    for axis in range(dataTable["head2"]): #Look up headData2 from the PacketHeader
+        for combin in COM_CONFIG.axisNodeChannels:
+            if combin[0] == PacketHeader["head1"] and combin[1] == axisCount:
+                axNoCh = combin[2]
 #                    print(axNoCh)
-            # Here you do the raw offset looping through the axes with the unpacking of the offset bits stuff.
-            thisAxis = breakdownThisAxis(axisData)
-            #dataTablePLC1["axisData"].append(thisAxis)
-            axisData = axisData[14:]
-            dataTable["axisData"].append(thisAxis)
+        # Here you do the raw offset looping through the axes with the unpacking of the offset bits stuff.
+        thisAxis = breakdownThisAxis(axisData)
+        #dataTablePLC1["axisData"].append(thisAxis)
+        axisData = axisData[14:]
+        dataTable["axisData"].append(thisAxis)
 #            print("axisNodeChannels: [{1}]: This axis: {0}".format(thisAxis,axNoCh))
-            axisCount += 1
-            Data_Table[str(axNoCh)] = thisAxis
-        return dataTable
+        axisCount += 1
+        Data_Table[str(axNoCh)] = thisAxis
+    return dataTable
 
 
-def addToExistingAxisArray(AxisArrayOld,AxisArrayNew):
-    for item in AxisArrayOld:
-        if item[0] == AxisArrayNew[AxisArrayOld.index(item)]:
-            print("I exist already")
-
-
-def sortAxisData_Table(Data_Table, AxisArray):
+def sortAxisData_Table(Data_Table):
     QuantifiedArray = []
     AxisMasterOrder = sorted(Data_Table, key = lambda x : int(x.split()[0]))
     for axis in AxisMasterOrder:
@@ -159,7 +135,7 @@ def convertAxisArraytoDictionary(AxisArray):
     AxDict = {}
     for item in AxisArray:
         AxDict[item[0]] = tuple(item[1])
-    return(AxDict)
+    return AxDict
 
 def read_main():
     # Set up UDP receiving ports
@@ -168,7 +144,6 @@ def read_main():
     # This is the main polling loop of the program, to get each and every UDP data packet.
     Node1Get = False
     Node2Get = False
-    AxisArray=[]
     """When using Tkinter, this code should be called by the
     'after' method. Our system sends packets every 50ms per node."""
     # Output the raw UDP data and src addr.
@@ -177,7 +152,7 @@ def read_main():
         data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
 
         NodeOutput = intoDataTable(addr,data)
-        AxisArray = sortAxisData_Table(Data_Table, AxisArray)
+        AxisArray = sortAxisData_Table(Data_Table)
         if NodeOutput["head1"] == 1:
             Node1Get = True
         if NodeOutput["head1"] == 2:
