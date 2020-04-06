@@ -98,20 +98,14 @@ def inDataTable(AxisClassArray, data):
 
 
 def intoDataTable(addr,data):
-    """
-    Note to self: at some point, try to re-work this, so we're not relying on
-    IP, and instead, use head1 - Simotion Node No. - as these are also uniqueish
-    Probably do a range check - as otherwise, it's looking at a broadcast packet
-    from any IP... which will cause issues.
-    """
 # See below original code, but the IP doesn't actually matter as we're already passed PLC Node Number in each packet.
     PacketHeader = parsePacketHeaderData(data)
     for axis in range(PacketHeader["head2"]):
 #        print("packet header node no")
 #        print(PacketHeader["head1"])
         #Break down the header information for each packet
-        dataTable = parsePacketHeaderData(data)
-        """Consider why we're calling parsePacketHeader twice. I think it's unneccesary"""
+        #dataTable = parsePacketHeaderData(data)
+        dataTable = PacketHeader
         # Now only look at axisData section of the Packet
         axisData = data[24:]
         axisCount = 1
