@@ -50,7 +50,10 @@ NumberOfNodes = len(Nodes)
 
 
 """AutoRead (Track) Settings"""
-
+# Define AxisYValues based on CAD plan
+AxisYValues = [200,500,800,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,
+3200,3400,3600,3800,4000,4200,4400,4600,4800,5000,5200,5400,5600,5800,6000,6200,
+6400,6600,6800,7000]
 
 
 """AutoRead (Control) Settings"""
