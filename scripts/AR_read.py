@@ -103,19 +103,23 @@ def read_main():
     """When using Tkinter, this code should be called by the
     'after' method. Our system sends packets every 50ms per node."""
     # Output the raw UDP data and src addr.
-    UpdateBoth = False
-    while UpdateBoth == False:
+    AllUpdated = False
+    NodesHeardFrom = []
+    while len(NodesHeardFrom) == COM_CONFIG.NumberOfNodes or AllUpdated == False:
         data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
-
         NodeOutput = intoDataTable(addr,data)
         AxisArray = sortAxisData_Table(Data_Table)
         if NodeOutput["head1"] == 1:
             Node1Get = True
+            COM_CONFIG.Nodes[0]["recv"] = True
         if NodeOutput["head1"] == 2:
             Node2Get = True
-        if Node1Get == True and Node2Get == True:
-            UpdateBoth = True
-    #    print(getSpecificAxisData(QuantifiedArray,34))
+            COM_CONFIG.Nodes[1]["recv"] = True
+#        if Node1Get == True and Node2Get == True:
+#            AllUpdated = True
+        for Node in COM_CONFIG.Nodes:
+            if Node["recv"] == True:
+                NodesHeardFrom.append(Node)
     AxisDict = convertAxisArraytoDictionary(AxisArray) # Now we can query an Axis Number and get info as tuple.
     return AxisDict
 
