@@ -32,8 +32,6 @@ axisNodeChannels = [
 # This saves on computing time - if the starting axis in eCham is nowhere near 1
 FirstEChamAxis = 1 #Default should be 1 though.
 
-NumberOfNodes = 2
-
 # Copy and paste this to make sure you have the right number of nodes in the system.
 Node1 = {
 "Name": "1A0",
@@ -43,15 +41,19 @@ Node1 = {
 
 Node2 = {
 "Name": "2A0",
-"IP": "172.16.1.52"
+"IP": "172.16.1.52",
 "recv": False,
 }
 
 Nodes = [Node1,Node2]
+NumberOfNodes = len(Nodes)
 
 
 """AutoRead (Track) Settings"""
-
+# Define AxisYValues based on CAD plan
+AxisYValues = [200,500,800,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,
+3200,3400,3600,3800,4000,4200,4400,4600,4800,5000,5200,5400,5600,5800,6000,6200,
+6400,6600,6800,7000]
 
 
 """AutoRead (Control) Settings"""
