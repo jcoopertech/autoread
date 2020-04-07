@@ -32,6 +32,23 @@ axisNodeChannels = [
 # This saves on computing time - if the starting axis in eCham is nowhere near 1
 FirstEChamAxis = 1 #Default should be 1 though.
 
+NumberOfNodes = 2
+
+# Copy and paste this to make sure you have the right number of nodes in the system.
+Node1 = {
+"Name": "1A0",
+"IP": "172.16.1.51",
+"recv": False,
+}
+
+Node2 = {
+"Name": "2A0",
+"IP": "172.16.1.52"
+"recv": False,
+}
+
+Nodes = [Node1,Node2]
+
 
 """AutoRead (Track) Settings"""
 
