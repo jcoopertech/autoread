@@ -11,27 +11,13 @@ _debug_ = False
 
 # Set up instance, this is possibly unique to our environment.
 
-if not _debug_:
-    COM_CONFIG.UDP_IP = "172.16.1.255"
-    COM_CONFIG.UDP_PORT = 30501
+if _debug_:
+    pass
+    #COM_CONFIG.UDP_IP = "172.16.1.255"
+    #COM_CONFIG.UDP_PORT = 30501
 
 
 Data_Table = {}
-
-
-
-## Function definitions
-# NB: Function doAxisDataParsing removed, was redundant and unused.
-
-def parseAxisData(axisDataList, axis):
-    # Notes to self:
-    # Use this function to create class objects. Then store classes in an array.
-    # Make this similar to parsePacketHeaderData, tip. Use ">B", for interpreting the BYTE length values.
-    # Make this go the other way in another function, to grab every fifth attribute from axisDataList, starting from StatusCode, to get each status, and search by status for each bar. Potentially look into making each Axis an Axis() object, make custom class.
-    returnArray = []
-    for attr in range(COM_CONFIG.ATTR_PER_AXIS):
-        returnArray.append(axisDataList[axis*COM_CONFIG.ATTR_PER_AXIS+attr])
-    return axis, returnArray
 
 
 def parsePacketHeaderData(data):
@@ -61,23 +47,6 @@ def breakdownThisAxis(axisData):
     thisAxis.append(struct.unpack(">b",axisData[12:13])[0]) # Status
     thisAxis.append(struct.unpack(">b",axisData[13:14])[0])
     return thisAxis
-
-
-def inDataTable(AxisClassArray, data):
-    """
-    This function goes through data for each axes according to head2.
-    It creates new Axis objects for each set of axisData according to
-    breakdownThisAxis above.
-    """
-    packet = {}
-    packet["Packet Header"] = parsePacketHeader(data)
-    NodeNo = Packet["Packet Header"]["head1"]
-    Packet["axisData"] = data[COM_CONFIG.LENGTH_HEADER:]
-    iteration = 0
-    for axis in range(packet["PacketHeader"]["head2"]):
-        AxisClassArray.append(Axis(breakdownThisAxis(Packet["AxisData"]), iteration))
-        iteration += 1
-    return AxisClassArray
 
 
 def intoDataTable(addr,data):
@@ -117,25 +86,12 @@ def sortAxisData_Table(Data_Table):
     return QuantifiedArray
 
 
-def getSpecificAxisData(QuantifiedArray, AxisNo):
-    print(QuantifiedArray)
-    localQuantifiedArray = list(QuantifiedArray)
-    for Axis in localQuantifiedArray:
-        if Axis[0][1] == str(AxisNo):
-            Position = Axis[1][0]
-            Speed = Axis[1][1]
-            Time = Axis[1][2]
-            Status = Axis[1][3]
-            return Position, Speed, Time, Status
-    # I.E. If the value isn't in this packet
-    return ("Get from cache")
-
-
 def convertAxisArraytoDictionary(AxisArray):
     AxDict = {}
     for item in AxisArray:
         AxDict[item[0]] = tuple(item[1])
     return AxDict
+
 
 def read_main():
     # Set up UDP receiving ports
