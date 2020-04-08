@@ -1,6 +1,20 @@
 
 # AutoRead Configuration File default
 
+"""AutoRead Track functions"""
+
+def GenerateNewLightList():
+    """You should use this function to generate a new light configuration"""
+    Lights = []
+    NumberToMake = int(input("How many lights would you like to have in the system?"))
+    for UnitID in range(NumberToMake):
+        ThisLightType = str(input("What type of light is this? (\"TW1\" or \"ETC_REV\")"))
+        CentreOffset = int(input("What is it's X value, based on your origin?\n\t-\tNote: Anything Stage Right of 0 should be negative."))
+        ThisItemAxis = int(input("What axis is the light on? Enter a number only."))
+        Lights.append([ThisLightType,(CentreOffset, None, None), ThisItemAxis, UnitID+1])
+    print("Lights = [{0}]".format(",\n".join([str(x) for x in Lights])))
+    return Lights
+
 """Set Up GPIO LED Pins"""
 LED_def = {"led1":16,"led2":18}
 
@@ -55,6 +69,63 @@ AxisYValues = [200,500,800,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,
 3200,3400,3600,3800,4000,4200,4400,4600,4800,5000,5200,5400,5600,5800,6000,6200,
 6400,6600,6800,7000]
 
+_offline_test_ = True
+
+if _offline_test_ == True:
+    # Update Axis status and Z value here - this is because we're not connected to Auto Network.
+    axisDict = {
+    1: (3871,0,0),
+    2: (10709,0,0),
+    3: (2550,0,0),
+    4: (5811,0,0),
+    5: (4108,0,0),
+    6: (3701,0,0),
+    7: (1549,0,0),
+    8: (4037,0,0),
+    9: (4127,0,0),
+    10: (6479,0,0),
+    11: (6214,0,0),
+    12: (7136,0,0),
+    13: (12364,0,0),
+    14: (3541,0,0),
+    15: (12606,0,0),
+    16: (3872,0,0),
+    17: (4360,0,0),
+    18: (12200,0,0),
+    19: (12768,0,0),
+    20: (2815,0,0),
+    21: (9137,0,0),
+    22: (11969,0,0),
+    23: (9172,0,0),
+    24: (7573,0,0),
+    25: (5697,0,0),
+    26: (13667,0,0),
+    27: (6386,0,0),
+    28: (5740,0,0),
+    29: (7080,0,0),
+    30: (13992,0,0),
+    31: (12240,0,0),
+    32: (3248,0,0),
+    33: (3869,0,0),
+    }
+
+Lights = [['ETC_REV', (0, None, None), 8, 1],
+['TW1', (-5000, None, None), 8, 2],
+['TW1', (-5000, None, None), 22, 3],
+['TW1', (-3000, None, None), 31, 4],
+['TW1', (0, None, None), 31, 5],
+['TW1', (3000, None, None), 31, 6],
+['TW1', (5000, None, None), 22, 7],
+['TW1', (5000, None, None), 8, 8]]
+
+# Format per point: ((X,Y,Z), "Name", ID - should be unique)
+TrackingPoints = [((0,0,1000),"Tracking Point 1", 1),
+                  ((-2500,1500,0), "Mid Stage Centre Track", 2),
+                  ((300,6742,100), "Upstage Left Tracking Point", 3)
+]
+
+# Format: [[Light.unitID, TrackingPoint.ID],...]
+LightsTracking = [[1,1],[2,2],[3,3],[4,1],[5,2],[6,3],[7,1],[8,2]]
 
 """AutoRead (Control) Settings"""
 

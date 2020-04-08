@@ -4,26 +4,46 @@
 import math
 import COM_CONFIG
 
-_offline_test_ = True
-if _offline_test_ == True:
-    # Update Axis status and Z value here - this is because we're not connected to Auto Network.
-    axisDict = {
-    9: (6750, 0, 0),
-    31: (7000, 0, 0),
-    6: (1100,0,0),
-    }
+
+class Coordinate():
+    def __init__(self, X, Y, Z):
+        self.X = X
+        self.Y = Y
+        self.Z = Z
+    def print_me(self):
+        print("\tX:\t", self.X)
+        print("\tY:\t", self.Y)
+        print("\tZ:\t", self.Z)
+
+
+class TrackingPoint():
+    def __init__(self, CoordTuple, Name, ID):
+        self.Coordinate = Coordinate(CoordTuple[0], CoordTuple[1], CoordTuple[2])
+        self.Name = Name
+        self.ID = ID
+        self.TrackedBy = []
+    def print_me(self):
+        print("TrackingPoint")
+        print("Name:\t\t", self.Name)
+        print("ID:\t\t", self.ID)
+        self.Coordinate.print_me()
+
 
 class Axis():
-    def __init__(self, AxisNumber, axisarray):
+    def __init__(self, AxisNumber, position, WinchCalibration = 0,):
         self.AxisNumber = AxisNumber
-        self.position = axisDict[AxisNumber][0]
-        self.Y_Coordinate = COM_CONFIG.AxisYValues[int(self.AxisNumber)-1]
+        self.Coordinate = Coordinate(None, COM_CONFIG.AxisYValues[int(self.AxisNumber)-1], position)
+        self.WinchCalibration = WinchCalibration
+        self.CalibratedCoordinate = Coordinate(None, COM_CONFIG.AxisYValues[int(self.AxisNumber)-1], position + self.WinchCalibration)
     def print_me(self):
         #print("--")
         #print("Axis object print_me")
-        print("AxisNumber\t\t", self.AxisNumber)
-        print("position\t\t", self.position)
-        print("Y_Coordinate\t\t", self.Y_Coordinate)
+        print("AxisNumber:\t\t", self.AxisNumber)
+        print("WinchCalibration:\t", self.WinchCalibration)
+        print("Coordinate:")
+        self.Coordinate.print_me()
+        print("CalibratedCoordinate:")
+        self.CalibratedCoordinate.print_me()
         #print("--")
 
 
@@ -36,9 +56,9 @@ class LightType:
     def print_me(self):
         #print("--")
         #print("LightType object print_me")
-        print("type_name\t\t", self.type_name)
-        print("total_pan\t\t", self.total_pan)
-        print("total_tilt\t\t", self.total_tilt)
+        print("type_name:\t\t", self.type_name)
+        print("total_pan:\t\t", self.total_pan)
+        print("total_tilt:\t\t", self.total_tilt)
         print("yoke_offset\t\t", self.yoke_offset)
         #print("--")
 
@@ -54,32 +74,35 @@ class Light():
         self.neg_pan = - self.plus_pan
         self.plus_tilt = self.LightType.total_tilt / 2
         self.neg_tilt = - self.plus_tilt
-        self.base_coord = {"X": CoordTuple[0], "Y": self.Axis.Y_Coordinate, "Z": self.Axis.position}
-        self.offset_coord = {"X": self.base_coord["X"],
-                             "Y": self.Axis.Y_Coordinate,
-                             "Z": self.Axis.position - self.LightType.yoke_offset}
-
+        self.BaseCoord = Coordinate(CoordTuple[0], self.Axis.CalibratedCoordinate.Y, self.Axis.CalibratedCoordinate.Z)
+        self.OffsetCoord = Coordinate(  self.BaseCoord.X, self.BaseCoord.Y, self.BaseCoord.Z - self.LightType.yoke_offset)
+        self.TrackingPoint = None
+        self.PanDeg = None
+        self.TiltDeg = None
     def print_me(self):
         print("Unit ID:", self.unitID)
+        print(".LightType attributes")
         self.LightType.print_me()
+        print(".Axis attributes")
         self.Axis.print_me()
-        print("plus_pan\t\t", self.plus_pan)
+        print(".BaseCoord attributes")
+        self.BaseCoord.print_me()
+        print(".OffsetCoord attributes")
+        self.OffsetCoord.print_me()
+        print("plus_pan:\t\t", self.plus_pan)
         print("neg_pan\t\t\t", self.neg_pan)
         print("plus_tilt\t\t", self.plus_tilt)
         print("neg_tilt\t\t", self.neg_tilt)
-        print("base_coord\t\t", self.base_coord)
-        print("yoke_offset_coord\t", self.offset_coord)
-        print("=====")
+        print("PanDeg\t\t", self.PanDeg)
+        print("TiltDeg\t\t", self.TiltDeg)
+        if self.TrackingPoint != None:
+            self.TrackingPoint.print_me()
+        else:
+            print("TrackingPoint\t\t", self.TrackingPoint)
+
 
 LightTypeObjects = [LightType("TW1", 540, 242, 454), # YOKE OFFSET OF 454 does not account for clamps
                     LightType("ETC_REV", 540, 270, 713)] # 713 accounts to pipe - but measure it
-
-# LightObjects = [Light(axis,LightTypeObjects[0])]
-
-# Format: Type, Coordinate,
-Lights = [["TW1", (-3500,2000,None), 9, 1],
-          ["TW1", (-3500,2000,None), 31, 2],
-          ["ETC_REV", (0,None,None), 6, 3]]
 
 
 def setup_AxisObjects(axisDict):
@@ -115,12 +138,18 @@ def setup_LightObjects(Lights, AxisObjects, LightTypeObjects):
     #print([LightType for LightType in LightTypeObjects if LightType.type_name == "TW1"])
     LightTypes_type_name = getLightTypeFromObject(LightTypeObjects)
     for LightItem in Lights:
-        print(LightItem)
         Axis = [Axis for Axis in AxisObjects if Axis.AxisNumber == LightItem[2]][0]
         unitID  = LightItem[3]
         CurrentLightType = [LightType for LightType in LightTypeObjects if LightType.type_name == LightItem[0]][0]
         LightObjects.append(Light(CurrentLightType, LightItem[1], Axis, unitID))
     return LightObjects
+
+
+def setup_TrackingPoints(TrackingPoints):
+    TrackingObjects = []
+    for Point in TrackingPoints:
+        TrackingObjects.append(TrackingPoint(Point[0], Point[1], Point[2]))
+    return TrackingObjects
 
 
 def printAllLightDetails(LightObjects):
@@ -129,13 +158,48 @@ def printAllLightDetails(LightObjects):
         print("\n")
 
 
+def printAllTrackingPointDetails(TrackingObjects):
+    for Point in TrackingObjects:
+        Point.print_me()
+        print("\n")
+
+
+def GiveLightTrackingPoint(LightObjects, TrackingObjects):
+    for Light in LightObjects:
+        try:
+            WhichPointID = int(input("Which point should Light:{0} track?\n\t-\tType 0 for no Point".format(Light.unitID)))
+        except ValueError:
+            print("ValueError raised. Telling to track no point.")
+            WhichPointID = 0
+        if WhichPointID != 0:
+            Light.TrackingPoint = [Point for Point in TrackingObjects if WhichPointID == Point.ID][0]
+        else:
+            Light.TrackingPoint = None
+
+
+def CalculateTiltAngle(LightsTracking, LightObjects, TrackingObjects):
+    pass
+
+def updateTrackingPointsAssociation(LightsTracking, LightObjects, TrackingObjects):
+    for Light in LightObjects:
+            association = [Assignment for Assignment in LightsTracking if Assignment[0] == Light.unitID][0]
+            print(association)
+            Light.TrackingPoint = [Point for Point in TrackingObjects if association[1] == Point.ID][0]
+
+
+
 def main_track(axisDict, Lights):
+    #Lights = GenerateNewLightList()
     AxisObjects = setup_AxisObjects(axisDict)
     LightObjects = setup_LightObjects(Lights, AxisObjects, LightTypeObjects)
+    TrackingObjects = setup_TrackingPoints(COM_CONFIG.TrackingPoints)
+#    GiveLightTrackingPoint(LightObjects, TrackingObjects)
+    updateTrackingPointsAssociation(COM_CONFIG.LightsTracking, LightObjects, TrackingObjects)
     printAllLightDetails(LightObjects)
 
 
 if __name__ == "__main__":
-    if _offline_test_ == True:
+    if COM_CONFIG._offline_test_ == True:
         pass
-    main_track(axisDict, Lights)
+    #COM_CONFIG.GenerateNewLightList()
+    main_track(COM_CONFIG.axisDict,COM_CONFIG.Lights)
