@@ -177,15 +177,32 @@ def GiveLightTrackingPoint(LightObjects, TrackingObjects):
             Light.TrackingPoint = None
 
 
-def CalculateTiltAngle(LightsTracking, LightObjects, TrackingObjects):
-    pass
+def CalculateLightAngles(LightsTracking, Light, TrackingObjects):
+    """We need to use the following, based on the calculators found at:
+    https://planetcalc.com/7952/"""
+    LightX = Light.OffsetCoord.X
+    LightY = Light.OffsetCoord.Y
+    LightZ = Light.OffsetCoord.Z
+    PointX = Light.TrackingPoint.Coordinate.X
+    PointY = Light.TrackingPoint.Coordinate.Z
+    PointZ = Light.TrackingPoint.Coordinate.Y
+    if LightZ > PointZ:
+        Z_Difference = LightZ - PointZ
+        X_Difference = LightX - PointX
+        Y_Difference = LightY - PointY
+        PolarDeg = math.degrees(math.atan(math.sqrt(X_Difference**2+Y_Difference**2)/Z_Difference))
+        print(X_Difference, Y_Difference, Z_Difference)
+        print(PolarDeg)
+    PanDeg = math.degrees(math.atan2(Y_Difference, X_Difference))
+    Light.TiltDeg = PolarDeg
+    Light.PanDeg = PanDeg
+
 
 def updateTrackingPointsAssociation(LightsTracking, LightObjects, TrackingObjects):
     for Light in LightObjects:
             association = [Assignment for Assignment in LightsTracking if Assignment[0] == Light.unitID][0]
             print(association)
             Light.TrackingPoint = [Point for Point in TrackingObjects if association[1] == Point.ID][0]
-
 
 
 def main_track(axisDict, Lights):
@@ -195,7 +212,11 @@ def main_track(axisDict, Lights):
     TrackingObjects = setup_TrackingPoints(COM_CONFIG.TrackingPoints)
 #    GiveLightTrackingPoint(LightObjects, TrackingObjects)
     updateTrackingPointsAssociation(COM_CONFIG.LightsTracking, LightObjects, TrackingObjects)
+    for Light in LightObjects:
+        if Light.TrackingPoint != None:
+            CalculateLightAngles(COM_CONFIG.LightsTracking, Light, TrackingObjects)
     printAllLightDetails(LightObjects)
+
 
 
 if __name__ == "__main__":
