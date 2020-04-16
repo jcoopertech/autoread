@@ -1,6 +1,23 @@
 
 # AutoRead Configuration File default
 
+"""LEAVE THIS SECTION ALONE!!!!!"""
+class LightType:
+    def __init__(self, type_name, total_pan, total_tilt, yoke_offset):
+        self.type_name = type_name
+        self.total_pan = total_pan
+        self.total_tilt = total_tilt
+        self.yoke_offset = yoke_offset
+    def print_me(self):
+        #print("--")
+        #print("LightType object print_me")
+        print("type_name:\t\t", self.type_name)
+        print("total_pan:\t\t", self.total_pan)
+        print("total_tilt:\t\t", self.total_tilt)
+        print("yoke_offset\t\t", self.yoke_offset)
+        #print("--")
+
+
 """AutoRead Track functions"""
 
 def GenerateNewLightList():
@@ -71,43 +88,46 @@ AxisYValues = [200,500,800,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,
 
 _offline_test_ = True
 
-if _offline_test_ == True:
-    # Update Axis status and Z value here - this is because we're not connected to Auto Network.
-    axisDict = {
-    1: (3871,0,0),
-    2: (10709,0,0),
-    3: (2550,0,0),
-    4: (5811,0,0),
-    5: (4108,0,0),
-    6: (3701,0,0),
-    7: (1549,0,0),
-    8: (4000,0,0),
-    9: (4127,0,0),
-    10: (6479,0,0),
-    11: (6214,0,0),
-    12: (7136,0,0),
-    13: (12364,0,0),
-    14: (3541,0,0),
-    15: (12606,0,0),
-    16: (3872,0,0),
-    17: (4360,0,0),
-    18: (12200,0,0),
-    19: (12768,0,0),
-    20: (2815,0,0),
-    21: (9137,0,0),
-    22: (11969,0,0),
-    23: (9172,0,0),
-    24: (7573,0,0),
-    25: (5697,0,0),
-    26: (13667,0,0),
-    27: (6386,0,0),
-    28: (5740,0,0),
-    29: (7080,0,0),
-    30: (13992,0,0),
-    31: (12240,0,0),
-    32: (3248,0,0),
-    33: (3869,0,0),
-    }
+
+# Update Axis status and Z value here - this is because we're not connected to Auto Network.
+axisDict = {
+1: (3871,0,0),
+2: (10709,0,0),
+3: (2550,0,0),
+4: (5811,0,0),
+5: (4108,0,0),
+6: (3701,0,0),
+7: (1549,0,0),
+8: (4000,0,0),
+9: (4127,0,0),
+10: (6479,0,0),
+11: (6214,0,0),
+12: (7136,0,0),
+13: (12364,0,0),
+14: (3541,0,0),
+15: (12606,0,0),
+16: (3872,0,0),
+17: (4360,0,0),
+18: (12200,0,0),
+19: (12768,0,0),
+20: (2815,0,0),
+21: (9137,0,0),
+22: (11969,0,0),
+23: (9172,0,0),
+24: (7573,0,0),
+25: (5697,0,0),
+26: (13667,0,0),
+27: (6386,0,0),
+28: (5740,0,0),
+29: (7080,0,0),
+30: (13992,0,0),
+31: (12240,0,0),
+32: (3248,0,0),
+33: (3869,0,0),
+}
+
+LightTypeObjects = [LightType("TW1", 540, 242, 454), # YOKE OFFSET OF 454 does not account for clamps
+                    LightType("ETC_REV", 540, 270, 713)] # 713 accounts to pipe - but measure it
 
 Lights = [['ETC_REV', (0, None, None), 8, 1],
 ['TW1', (-5000, None, None), 8, 2],
@@ -117,6 +137,17 @@ Lights = [['ETC_REV', (0, None, None), 8, 1],
 ['TW1', (3000, None, None), 31, 6],
 ['TW1', (5000, None, None), 22, 7],
 ['TW1', (5000, None, None), 8, 8]]
+
+#Format: [ [ UnitID, Universe, AddrPanCoarse, AddrPanFine,AddrTiltCoarse,AddrTiltFine] ]
+LightsUniverseAddr=[
+[1, 1, 2,3,4,5],
+[2, 1, 45,46,47,48],
+[3, 1, 65,66,67,68],
+[4, 1, 85,86,87,88],
+[5, 1, 105,106,107,108],
+[6, 1, 125,126,127,128],
+[7, 1, 145,146,147,148],
+[8, 1, 165,166,167,168],]
 
 # Format per point: ((X,Y,Z), "Name", ID - should be unique)
 TrackingPoints = [((0,0,1000),"Tracking Point 1", 1),
@@ -129,7 +160,7 @@ LightsTracking = [[1,1],[2,2],[3,3],[4,1],[5,2],[6,3],[7,1],[8,2]]
 
 """AutoRead (Control) Settings"""
 
-
+sACNPriority = 150
 
 
 """

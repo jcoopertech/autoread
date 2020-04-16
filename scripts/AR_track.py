@@ -47,22 +47,6 @@ class Axis():
         #print("--")
 
 
-class LightType:
-    def __init__(self, type_name, total_pan, total_tilt, yoke_offset):
-        self.type_name = type_name
-        self.total_pan = total_pan
-        self.total_tilt = total_tilt
-        self.yoke_offset = yoke_offset
-    def print_me(self):
-        #print("--")
-        #print("LightType object print_me")
-        print("type_name:\t\t", self.type_name)
-        print("total_pan:\t\t", self.total_pan)
-        print("total_tilt:\t\t", self.total_tilt)
-        print("yoke_offset\t\t", self.yoke_offset)
-        #print("--")
-
-
 class Light():
     def __init__(self,ThisLightType,CoordTuple,AxisClass,unitID):
         # Calculate maximum pan ranges in degrees.
@@ -79,6 +63,10 @@ class Light():
         self.TrackingPoint = None
         self.PanDeg = None
         self.TiltDeg = None
+        self.Pan = None
+        self.Tilt = None
+        self.Addresses = []
+        self.Universe = None
     def print_me(self):
         print("Unit ID:", self.unitID)
         print(".LightType attributes")
@@ -95,15 +83,17 @@ class Light():
         print("neg_tilt\t\t", self.neg_tilt)
         print("PanDeg\t\t", self.PanDeg)
         print("TiltDeg\t\t", self.TiltDeg)
+        print("Pan:\t\t", self.Pan)
+        print("Tilt:\t\t", self.Tilt)
+        print("Universe:\t\t", self.Universe)
+        print("Addresses:\t\t", self.Addresses)
         if self.TrackingPoint != None:
             self.TrackingPoint.print_me()
         else:
             print("TrackingPoint\t\t", self.TrackingPoint)
 
 
-LightTypeObjects = [LightType("TW1", 540, 242, 454), # YOKE OFFSET OF 454 does not account for clamps
-                    LightType("ETC_REV", 540, 270, 713)] # 713 accounts to pipe - but measure it
-
+LightTypeObjects = COM_CONFIG.LightTypeObjects
 
 def setup_AxisObjects(axisDict):
     AxisObjects = []
@@ -205,6 +195,29 @@ def updateTrackingPointsAssociation(LightsTracking, LightObjects, TrackingObject
             Light.TrackingPoint = [Point for Point in TrackingObjects if association[1] == Point.ID][0]
 
 
+def remap(degreeinput,degreemin,degreemax,dmxmin=0,dmxmax=65536):
+    """
+    Convert the degree value to a 16 bit dmx number.
+    """
+    DMXvalue = ((degreeinput - degreemin) * (dmxmax-dmxmin) / (degreemax - degreemin) + dmxmin)
+    return DMXvalue
+
+
+def resplitfinecontrol(DMXvalue):
+    DMXvalue = round(int(DMXvalue))
+    coarse = DMXvalue >> 8
+    fine = DMXvalue % 256
+    return coarse,fine
+
+
+def AssignAddressesToLights(LightsUniverseAddr, Light):
+    try:
+        Light.Addresses = [LightAsAddresses[1:6] for LightAsAddresses in LightsUniverseAddr if LightAsAddresses[0] == Light.unitID][0]
+        Light.Universe = Light.Addresses[0]
+        Light.Addresses.remove(Light.Addresses[0])
+    except IndexError:
+        print("Light {0}'s address could not be found!' ".format(Light.unitID))
+
 def main_track(axisDict, Lights):
     #Lights = GenerateNewLightList()
     AxisObjects = setup_AxisObjects(axisDict)
@@ -215,6 +228,12 @@ def main_track(axisDict, Lights):
     for Light in LightObjects:
         if Light.TrackingPoint != None:
             CalculateLightAngles(COM_CONFIG.LightsTracking, Light, TrackingObjects)
+            """Calculate Pan sACN 16 bit"""
+            Light.Pan = resplitfinecontrol(remap(Light.PanDeg,Light.neg_pan,Light.plus_pan))
+            Light.Tilt = resplitfinecontrol(remap(Light.TiltDeg,Light.neg_tilt,Light.plus_tilt))
+            AssignAddressesToLights(COM_CONFIG.LightsUniverseAddr, Light)
+            #CalculatesACNforLights(COM_CONFIG.LightsUniverseAddr)
+    COM_CONFIG.LightObjects = LightObjects
     printAllLightDetails(LightObjects)
 
 
