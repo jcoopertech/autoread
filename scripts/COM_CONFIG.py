@@ -1,7 +1,19 @@
 
 # AutoRead Configuration File default
+"""
+AUTOREAD CONFIG File
 
-"""LEAVE THIS SECTION ALONE!!!!!"""
+Author:     James Cooper
+Contact:    james@jcooper.tech
+Description:    Shared code for many parts of AutoRead.
+
+This project was made for the Guildhall School of Music and Drama.
+Developed with the Milton Court TAIT eChameleon Automation installation in mind.
+
+"""
+
+
+"""Leave these first sections alone :)"""
 class LightType:
     def __init__(self, type_name, total_pan, total_tilt, yoke_offset):
         self.type_name = type_name
@@ -9,19 +21,15 @@ class LightType:
         self.total_tilt = total_tilt
         self.yoke_offset = yoke_offset
     def print_me(self):
-        #print("--")
-        #print("LightType object print_me")
         print("type_name:\t\t", self.type_name)
         print("total_pan:\t\t", self.total_pan)
         print("total_tilt:\t\t", self.total_tilt)
         print("yoke_offset\t\t", self.yoke_offset)
-        #print("--")
 
-
-"""AutoRead Track functions"""
 
 def GenerateNewLightList():
-    """You should use this function to generate a new light configuration"""
+    """You should use this function to generate a new light configuration.
+    Note, adaptations will need to be made if you want to add more LightTypes."""
     Lights = []
     NumberToMake = int(input("How many lights would you like to have in the system?"))
     for UnitID in range(NumberToMake):
@@ -31,6 +39,26 @@ def GenerateNewLightList():
         Lights.append([ThisLightType,(CentreOffset, None, None), ThisItemAxis, UnitID+1])
     print("Lights = [{0}]".format(",\n".join([str(x) for x in Lights])))
     return Lights
+
+"""AUTO READ CONFIG FILE - READ FROM HERE DOWN"""
+"""
+          _    _ _______ ____  _____  ______          _____
+     /\  | |  | |__   __/ __ \|  __ \|  ____|   /\   |  __ \
+    /  \ | |  | |  | | | |  | | |__) | |__     /  \  | |  | |
+   / /\ \| |  | |  | | | |  | |  _  /|  __|   / /\ \ | |  | |
+  / ____ \ |__| |  | | | |__| | | \ \| |____ / ____ \| |__| |
+ /_/    \_\____/   |_|  \____/|_|  \_\______/_/    \_\_____/
+
+
+"""
+"""If this system is installed, with an automation network, set this to False"""
+_offline_test_ = True
+#_offline_test_ = False
+
+
+
+"""AutoRead Track functions"""
+
 
 """Set Up GPIO LED Pins"""
 LED_def = {"led1":16,"led2":18}
@@ -86,7 +114,7 @@ AxisYValues = [200,500,800,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,
 3200,3400,3600,3800,4000,4200,4400,4600,4800,5000,5200,5400,5600,5800,6000,6200,
 6400,6600,6800,7000]
 
-_offline_test_ = True
+
 
 
 # Update Axis status and Z value here - this is because we're not connected to Auto Network.
@@ -98,7 +126,7 @@ axisDict = {
 5: (4108,0,0),
 6: (3701,0,0),
 7: (1549,0,0),
-8: (4000,0,0),
+8: (6750,0,0),
 9: (4127,0,0),
 10: (6479,0,0),
 11: (6214,0,0),
@@ -112,7 +140,7 @@ axisDict = {
 19: (12768,0,0),
 20: (2815,0,0),
 21: (9137,0,0),
-22: (11969,0,0),
+22: (10100,0,0),
 23: (9172,0,0),
 24: (7573,0,0),
 25: (5697,0,0),
@@ -121,7 +149,7 @@ axisDict = {
 28: (5740,0,0),
 29: (7080,0,0),
 30: (13992,0,0),
-31: (12240,0,0),
+31: (6000,0,0),
 32: (3248,0,0),
 33: (3869,0,0),
 }
@@ -129,16 +157,23 @@ axisDict = {
 LightTypeObjects = [LightType("TW1", 540, 242, 454), # YOKE OFFSET OF 454 does not account for clamps
                     LightType("ETC_REV", 540, 270, 713)] # 713 accounts to pipe - but measure it
 
+## Format: [ [LightType Name, (X coordinate, None, None), AxisNumber, unitID], ]
 Lights = [['ETC_REV', (0, None, None), 8, 1],
-['TW1', (-5000, None, None), 8, 2],
-['TW1', (-5000, None, None), 22, 3],
+['TW1', (-3628, None, None), 8, 2],
+['TW1', (-4342, None, None), 22, 3],
 ['TW1', (-3000, None, None), 31, 4],
-['TW1', (0, None, None), 31, 5],
+['TW1', (145, None, None), 22, 5],
 ['TW1', (3000, None, None), 31, 6],
-['TW1', (5000, None, None), 22, 7],
-['TW1', (5000, None, None), 8, 8]]
+['TW1', (3288, None, None), 22, 7],
+['TW1', (4328, None, None), 8, 8],
+#['TW1', (-4320, 6000, 10000), None, 9],
+]
 
-#Format: [ [ UnitID, Universe, AddrPanCoarse, AddrPanFine,AddrTiltCoarse,AddrTiltFine] ]
+#Lights = [['TW1', (3000, None, None), 10, 1],
+#['TW1', (-3000, None, None), 24, 2],]
+
+#Format:
+#   [ [ UnitID, Univ, AddrPanCoarse, AddrPanFine,AddrTiltCoarse,AddrTiltFine] ]
 LightsUniverseAddr=[
 [1, 1, 2,3,4,5],
 [2, 1, 45,46,47,48],
@@ -149,14 +184,20 @@ LightsUniverseAddr=[
 [7, 1, 145,146,147,148],
 [8, 1, 165,166,167,168],]
 
-# Format per point: ((X,Y,Z), "Name", ID - should be unique)
-TrackingPoints = [((0,0,1000),"Tracking Point 1", 1),
+# Format per point:
+#   [ ((X,Y,Z), "Name", ID - should be unique), ... ]
+TrackingPoints = [((0,0,0),"Tracking Point 1", 1),
                   ((-2500,1500,0), "Mid Stage Centre Track", 2),
-                  ((300,6742,100), "Upstage Left Tracking Point", 3)
+                  ((300,6742,100), "Upstage Left Tracking Point", 3),
+                  ((0,4000,3000), "Above CS", 4),
+                  ((1521,1400,2000), "Man DSR", 5),
+		  ((3000,3000,3000), "3m Square", 6),
 ]
 
 # Format: [[Light.unitID, TrackingPoint.ID],...]
-LightsTracking = [[1,1],[2,2],[3,3],[4,1],[5,2],[6,3],[7,1],[8,2]]
+LightsTracking = [[1,1],[2,1],[3,5],[4,5],[5,5],[6,5],[7,5],[8,5], [9,5]]
+
+#LightsTracking = [[1,6],[2,6]]
 
 """AutoRead (Control) Settings"""
 
@@ -169,8 +210,19 @@ sACNPriority = 150
 """
 
 def main():
-    print("""Sorry chief. This file is just common constant variables.
-    You'll want to edit this file though!""")
+    print("""
+COM_CONFIG.py - AUTOREAD CONFIG FILE
 
-if __name__ is "__main__":
+Sorry chief. This file is just common constant variables.
+You'll want to edit this file though:\nuse a text editor, or \"nano\" on the command line
+JRC 27APR2020
+
+Support at james@jcooper.tech if you're stuck.
+
+Uncomment the last line in this file to help you generate a new "Lights" list,
+which you can use to replace the one in this file.
+""")
+
+if __name__ == "__main__":
     main()
+    GenerateNewLightList()

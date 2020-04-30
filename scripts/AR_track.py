@@ -3,7 +3,7 @@
 
 import math
 import COM_CONFIG
-
+import sys, getopt
 
 class Coordinate():
     def __init__(self, X, Y, Z):
@@ -21,12 +21,13 @@ class TrackingPoint():
         self.Coordinate = Coordinate(CoordTuple[0], CoordTuple[1], CoordTuple[2])
         self.Name = Name
         self.ID = ID
-        self.TrackedBy = []
     def print_me(self):
         print("TrackingPoint")
         print("Name:\t\t", self.Name)
         print("ID:\t\t", self.ID)
         self.Coordinate.print_me()
+    def print_simple(self):
+        print("Tracking Point:\t\t", self.Name)
 
 
 class Axis():
@@ -50,7 +51,10 @@ class Axis():
 class Light():
     def __init__(self,ThisLightType,CoordTuple,AxisClass,unitID):
         # Calculate maximum pan ranges in degrees.
-        self.Axis = AxisClass
+        if isinstance(AxisClass, Axis):
+            self.Axis = AxisClass
+        else:
+            self.Axis = None
         #Use LightType.type_name etc to access type variables
         self.LightType = ThisLightType
         self.unitID = unitID
@@ -58,7 +62,11 @@ class Light():
         self.neg_pan = - self.plus_pan
         self.plus_tilt = self.LightType.total_tilt / 2
         self.neg_tilt = - self.plus_tilt
-        self.BaseCoord = Coordinate(CoordTuple[0], self.Axis.CalibratedCoordinate.Y, self.Axis.CalibratedCoordinate.Z)
+        if self.Axis == None:
+            self.BaseCoord = AxisClass
+            print(self.BaseCoord)
+        if self.Axis != None:
+            self.BaseCoord = Coordinate(CoordTuple[0], self.Axis.CalibratedCoordinate.Y, self.Axis.CalibratedCoordinate.Z)
         self.OffsetCoord = Coordinate(  self.BaseCoord.X, self.BaseCoord.Y, self.BaseCoord.Z - self.LightType.yoke_offset)
         self.TrackingPoint = None
         self.PanDeg = None
@@ -72,7 +80,8 @@ class Light():
         print(".LightType attributes")
         self.LightType.print_me()
         print(".Axis attributes")
-        self.Axis.print_me()
+        if self.Axis != None:
+            self.Axis.print_me()
         print(".BaseCoord attributes")
         self.BaseCoord.print_me()
         print(".OffsetCoord attributes")
@@ -91,6 +100,12 @@ class Light():
             self.TrackingPoint.print_me()
         else:
             print("TrackingPoint\t\t", self.TrackingPoint)
+    def print_simple(self):
+        print("Unit ID:", self.unitID)
+        print("PanDeg\t\t", self.PanDeg)
+        print("TiltDeg\t\t", self.TiltDeg)
+        self.TrackingPoint.print_simple()
+
 
 
 LightTypeObjects = COM_CONFIG.LightTypeObjects
@@ -102,36 +117,21 @@ def setup_AxisObjects(axisDict):
     return AxisObjects
 
 
-def assignAxisToLight(Axis, Light):
-    Light.Axis = Axis
-    return Light
-
-
-def getLightTypeFromObject(LightTypeObjects):
-    LightTypes_type_name = []
-    for LightType in LightTypeObjects:
-        LightTypes_type_name.append(LightType.type_name)
-    return LightTypes_type_name
-
-
-def getAxisNumberFromObject(AxisObjects):
-    AxisNumbers = []
-    for Axis in AxisObjects:
-        AxisNumbers.append(Axis.AxisNumber)
-    return AxisNumbers
-
-
 def setup_LightObjects(Lights, AxisObjects, LightTypeObjects):
     LightObjects = []
     #Get Axis Object to be written to Light object
-    AxisNumbers = getAxisNumberFromObject(AxisObjects)
     #print([LightType for LightType in LightTypeObjects if LightType.type_name == "TW1"])
-    LightTypes_type_name = getLightTypeFromObject(LightTypeObjects)
     for LightItem in Lights:
-        Axis = [Axis for Axis in AxisObjects if Axis.AxisNumber == LightItem[2]][0]
         unitID  = LightItem[3]
         CurrentLightType = [LightType for LightType in LightTypeObjects if LightType.type_name == LightItem[0]][0]
-        LightObjects.append(Light(CurrentLightType, LightItem[1], Axis, unitID))
+        #print(LightItem[2])
+        if LightItem[2] == None:
+            #If there is no Axis assigned
+            BaseCoord = Coordinate(LightItem[1][0], LightItem[1][1], LightItem[1][2])
+            LightObjects.append(Light(CurrentLightType, LightItem[1], BaseCoord, unitID))
+        else:
+            Axis = [Axis for Axis in AxisObjects if Axis.AxisNumber == LightItem[2]][0]
+            LightObjects.append(Light(CurrentLightType, LightItem[1], Axis, unitID))
     return LightObjects
 
 
@@ -142,9 +142,19 @@ def setup_TrackingPoints(TrackingPoints):
     return TrackingObjects
 
 
-def printAllLightDetails(LightObjects):
+def printAllLightDetails(LightObjects, argv, opts):
+    for opt, arg in opts:
+        if opt == "-v":
+            verbose = arg
+        else:
+            verbose = 0
     for Light in LightObjects:
-        Light.print_me()
+        if int(verbose) == 2:
+            Light.print_me()
+        elif int(verbose) == 1:
+            Light.print_simple()
+        else:
+            ""
         print("\n")
 
 
@@ -168,30 +178,31 @@ def GiveLightTrackingPoint(LightObjects, TrackingObjects):
 
 
 def CalculateLightAngles(LightsTracking, Light, TrackingObjects):
-    """We need to use the following, based on the calculators found at:
-    https://planetcalc.com/7952/"""
+    """Calculate Azimuth and Elevation (Pan/Tilt) for all the
+    lights defined in the AutoRead system."""
+
     LightX = Light.OffsetCoord.X
     LightY = Light.OffsetCoord.Y
     LightZ = Light.OffsetCoord.Z
     PointX = Light.TrackingPoint.Coordinate.X
     PointY = Light.TrackingPoint.Coordinate.Z
     PointZ = Light.TrackingPoint.Coordinate.Y
-    if LightZ > PointZ:
-        Z_Difference = LightZ - PointZ
-        X_Difference = LightX - PointX
-        Y_Difference = LightY - PointY
-        PolarDeg = math.degrees(math.atan(math.sqrt(X_Difference**2+Y_Difference**2)/Z_Difference))
-        print(X_Difference, Y_Difference, Z_Difference)
-        print(PolarDeg)
-    PanDeg = math.degrees(math.atan2(Y_Difference, X_Difference))
-    Light.TiltDeg = PolarDeg
+    Z_Difference = LightZ - PointZ
+    X_Difference = LightX - PointX
+    Y_Difference = LightY - PointY
+#    print("Light ", Light.unitID, "X",X_Difference, "Y",Y_Difference, "Z",Z_Difference)
+    TiltAngle = math.degrees(math.atan(math.sqrt(X_Difference**2+Y_Difference**2)/Z_Difference))
+#    print("Tilt", TiltAngle)
+    PanDeg = -(math.degrees(math.atan2(Y_Difference, X_Difference)))+90
+#    print("Pan", PanDeg)
+    Light.TiltDeg = TiltAngle
     Light.PanDeg = PanDeg
-
+    #https://planetcalc.com/7952/"""
 
 def updateTrackingPointsAssociation(LightsTracking, LightObjects, TrackingObjects):
     for Light in LightObjects:
             association = [Assignment for Assignment in LightsTracking if Assignment[0] == Light.unitID][0]
-            print(association)
+#            print(association)
             Light.TrackingPoint = [Point for Point in TrackingObjects if association[1] == Point.ID][0]
 
 
@@ -218,7 +229,7 @@ def AssignAddressesToLights(LightsUniverseAddr, Light):
     except IndexError:
         print("Light {0}'s address could not be found!' ".format(Light.unitID))
 
-def main_track(axisDict, Lights):
+def main_track(axisDict, Lights, argv=None, opts=None):
     #Lights = GenerateNewLightList()
     AxisObjects = setup_AxisObjects(axisDict)
     LightObjects = setup_LightObjects(Lights, AxisObjects, LightTypeObjects)
@@ -234,7 +245,7 @@ def main_track(axisDict, Lights):
             AssignAddressesToLights(COM_CONFIG.LightsUniverseAddr, Light)
             #CalculatesACNforLights(COM_CONFIG.LightsUniverseAddr)
     COM_CONFIG.LightObjects = LightObjects
-    printAllLightDetails(LightObjects)
+    printAllLightDetails(LightObjects, argv, opts)
 
 
 
@@ -242,4 +253,10 @@ if __name__ == "__main__":
     if COM_CONFIG._offline_test_ == True:
         pass
     #COM_CONFIG.GenerateNewLightList()
-    main_track(COM_CONFIG.axisDict,COM_CONFIG.Lights)
+    argv = sys.argv[1:]
+    try:
+       opts, args = getopt.getopt(argv,"v:")
+       main_track(COM_CONFIG.axisDict,COM_CONFIG.Lights, args, opts)
+    except getopt.GetoptError:
+        print('AR_track.py -v [0-2]')
+        sys.exit(2)
