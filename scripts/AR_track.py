@@ -191,9 +191,10 @@ def CalculateLightAngles(LightsTracking, Light, TrackingObjects):
     X_Difference = LightX - PointX
     Y_Difference = LightY - PointY
 #    print("Light ", Light.unitID, "X",X_Difference, "Y",Y_Difference, "Z",Z_Difference)
-    TiltAngle = math.degrees(math.atan(math.sqrt(X_Difference**2+Y_Difference**2)/Z_Difference))
+    TiltAngle = math.degrees(math.atan2(math.sqrt(X_Difference**2 + Y_Difference**2), Z_Difference))
 #    print("Tilt", TiltAngle)
-    PanDeg = -(math.degrees(math.atan2(Y_Difference, X_Difference)))+90
+#    PanDeg = -(math.degrees(math.atan2(Y_Difference, X_Difference)))+90
+    PanDeg = math.degrees(math.atan2(Y_Difference, X_Difference))+90
 #    print("Pan", PanDeg)
     Light.TiltDeg = TiltAngle
     Light.PanDeg = PanDeg
@@ -216,7 +217,7 @@ def remap(degreeinput,degreemin,degreemax,dmxmin=0,dmxmax=65536):
 
 def resplitfinecontrol(DMXvalue):
     DMXvalue = round(int(DMXvalue))
-    coarse = DMXvalue >> 8
+    coarse = int(DMXvalue) >> 8
     fine = DMXvalue % 256
     return coarse,fine
 

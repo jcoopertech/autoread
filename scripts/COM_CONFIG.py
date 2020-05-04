@@ -192,10 +192,11 @@ TrackingPoints = [((0,0,0),"Tracking Point 1", 1),
                   ((0,4000,3000), "Above CS", 4),
                   ((1521,1400,2000), "Man DSR", 5),
 		  ((3000,3000,3000), "3m Square", 6),
+          ((-1569,3313,1000), "Table", 7),
 ]
 
 # Format: [[Light.unitID, TrackingPoint.ID],...]
-LightsTracking = [[1,1],[2,1],[3,5],[4,5],[5,5],[6,5],[7,5],[8,5], [9,5]]
+LightsTracking = [[1,1],[2,1],[3,7],[4,5],[5,5],[6,7],[7,5],[8,5], [9,5]]
 
 #LightsTracking = [[1,6],[2,6]]
 
