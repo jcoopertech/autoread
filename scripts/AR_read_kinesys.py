@@ -13,7 +13,12 @@ _debug_ = True
 """
 
 This is EXCLUSIVELY AR_read but for Kinesys axes.
+The main differences between Kinesys and Simotion are:
+ - 1 data source outputs all axes per system - not multiple notes to merge.
+ - there are 6 "axes" per Kinesys row/channel/motor.
 
+ This is because a media server output item can affect 1 of 6 axes for other
+ places to interpret. Similar to PSN.
 
 """
 
@@ -39,19 +44,7 @@ if _debug_:
     UDP_IP = "0.0.0.0"
     UDP_PORT = 6061
     LENGTH_HEADER = 10
-    axNoCh = \
-    [[1, 1, 1],[1, 2, 22],[1, 3, 24],[1, 4, 26],
-    [1, 5, 28],[1, 6, 30],[1, 7, 32],[1, 8, 35],
-    [1, 9, 41],[1, 10, 42],[1, 11, 43],[1, 12, 44],
-    [1, 13, 45],[1, 14, 46],[1, 15, 91],[1, 16, 92],
-    [1, 17, 93],[2, 1, 1],[2, 2, 2],[2, 3, 5],
-    [2, 4, 7],[2, 5, 9],[2, 6, 11],[2, 7, 13],
-    [2, 8, 15],[2, 9, 17],[2, 10, 19],[2, 11, 21],
-    [2, 12, 23],[2, 13, 25],[2, 14, 27],[2, 15, 29],
-    [2, 16, 31],[2, 17, 33],[2, 18, 34],[2, 19, 3],
-    [2, 20, 4],[2, 21, 6],[2, 22, 8],[2, 23, 10],
-    [2, 24, 12],[2, 25, 14],[2, 26, 16],[2, 27, 18],
-    [3, 1, 81],[3, 2, 82]]
+
 
 Data_Table = {}
 
@@ -77,37 +70,7 @@ def KinesysPacketHeader(data):
     return PacketHeader
 
 
-
-def SimotionPacketHeader(data):
-    magicNumber = struct.unpack(">I",data[0:4])[0]
-    packetID = struct.unpack(">I",data[4:8])[0]
-    head1 = struct.unpack(">I",data[8:12])[0] # Simotion
-    head2 = struct.unpack(">I",data[12:16])[0] # Number of Axes driven from this Simotion CU
-    head3 = struct.unpack(">I",data[16:20])[0] # Null (these bytes return the value int(0))
-    head4 = struct.unpack(">I",data[20:24])[0] # First axis on this PLC (always 1)
-    PacketHeader = {
-    "magicNumber" : magicNumber,
-    "packetID" : packetID,
-    "head1" : head1,
-    "head2" : head2, #Skip head3 because NULL
-    "head4" : head4,
-    "axisData" : [], # Stores list of all axes data
-    }
-    return PacketHeader
-
-
-def breakdownSimotionAxis(axisData):
-    thisAxis = [] #Set up Blank List for this axis
-    # Append Position, Speed, Time Left, Status to thisAxis (local)
-    thisAxis.append(struct.unpack(">I",axisData[0:4])[0]) # Position
-    thisAxis.append(struct.unpack(">I",axisData[4:8])[0]) # Speed
-    thisAxis.append(struct.unpack(">I",axisData[8:12])[0]) # Time Left
-    thisAxis.append(struct.unpack(">b",axisData[12:13])[0]) # Status
-    thisAxis.append(struct.unpack(">b",axisData[13:14])[0])
-    return thisAxis
-
 def breakdownKinesysAxis(axisData):
-
     thisAxis = [] #Set up Blank List for this axis
     # Append Position, Speed, Time Left, Status to thisAxis (local)
     offset = 0
@@ -167,8 +130,6 @@ def read_main():
     # This is the main polling loop of the program, to get each and every UDP data packet.
     Node1Get = False
     Node2Get = False
-    """When using Tkinter, this code should be called by the
-    'after' method. Our system sends packets every 50ms per node."""
     # Output the raw UDP data and src addr.
     AllUpdated = False
     ExitCond = False
@@ -177,17 +138,6 @@ def read_main():
         print(data)
         NodeOutput = intoKinesysDataTable(addr,data)
         AxisArray = sortAxisData_Table(Data_Table)
-        if NodeOutput["head1"] == 1:
-            Node1Get = True
-            COM_CONFIG.Nodes[0]["recv"] = True
-        if NodeOutput["head1"] == 2:
-            Node2Get = True
-            COM_CONFIG.Nodes[1]["recv"] = True
-#        if Node1Get == True and Node2Get == True:
-#            AllUpdated = True
-        for Node in COM_CONFIG.Nodes:
-            if Node["recv"] == True:
-                NodesHeardFrom.append(Node)
     AxisDict = convertAxisArraytoDictionary(AxisArray) # Now we can query an Axis Number and get info as tuple.
     return AxisDict
 
