@@ -17,6 +17,22 @@ This is EXCLUSIVELY AR_read but for Kinesys axes.
 
 """
 
+class KinesysAxis():
+    def __init__(self):
+        self.X = thisAxis[0]
+        self.Y = thisAxis[1]
+        self.Z = thisAxis[2]
+        self.Pitch = thisAxis[3]
+        self.Tilt = thisAxis[4]
+        self.Rotate = thisAxis[5]
+
+class KinesysAxisPart():
+    def __init__(self, thisAxis):
+        self.ID = thisAxis[0]
+        self.Position = thisAxis[1]
+        self.Speed = thisAxis[2]
+        self.Error = thisAxis[3]
+
 
 if _debug_:
     pass
@@ -39,7 +55,7 @@ if _debug_:
 
 Data_Table = {}
 
-def parseKinesysPacketHeaderData(data):
+def KinesysPacketHeader(data):
     KNET = struct.unpack(">ssssssssssss",data[0:12])
     KNET_ID = "".join(str(KNET_part,'utf-8') for KNET_part in KNET)
     print(KNET_ID)
@@ -55,17 +71,17 @@ def parseKinesysPacketHeaderData(data):
     "magicNumber" : KNET_ID,
     "packetID" : FrameID,
     "head1" : KNET_ID,
-    "head2" : NumDataMsgs, #Skip head3 because NULL
+    "NumDataMsgs" : NumDataMsgs, #Skip head3 because NULL
     "axisData" : [], # Stores list of all axes data
     }
     return PacketHeader
 
 
 
-def parsePacketHeaderData(data):
+def SimotionPacketHeader(data):
     magicNumber = struct.unpack(">I",data[0:4])[0]
     packetID = struct.unpack(">I",data[4:8])[0]
-    head1 = struct.unpack(">I",data[8:12])[0] # Simotion CU Node Number
+    head1 = struct.unpack(">I",data[8:12])[0] # Simotion
     head2 = struct.unpack(">I",data[12:16])[0] # Number of Axes driven from this Simotion CU
     head3 = struct.unpack(">I",data[16:20])[0] # Null (these bytes return the value int(0))
     head4 = struct.unpack(">I",data[20:24])[0] # First axis on this PLC (always 1)
@@ -80,7 +96,7 @@ def parsePacketHeaderData(data):
     return PacketHeader
 
 
-def breakdownThisAxis(axisData):
+def breakdownSimotionAxis(axisData):
     thisAxis = [] #Set up Blank List for this axis
     # Append Position, Speed, Time Left, Status to thisAxis (local)
     thisAxis.append(struct.unpack(">I",axisData[0:4])[0]) # Position
@@ -90,32 +106,40 @@ def breakdownThisAxis(axisData):
     thisAxis.append(struct.unpack(">b",axisData[13:14])[0])
     return thisAxis
 
+def breakdownKinesysAxis(axisData):
 
-def intoDataTable(addr,data):
+    thisAxis = [] #Set up Blank List for this axis
+    # Append Position, Speed, Time Left, Status to thisAxis (local)
+    offset = 0
+    for axis in axisData:
+        thisAxis.append(struct.unpack(">H",axisData[offset+0:offset+2])[0]) # AxisID
+        thisAxis.append(struct.unpack(">l",axisData[offset+2:offset+6])[0]) # Position signed
+        thisAxis.append(struct.unpack(">H",axisData[offset+6:offset+8])[0]) # Speed
+        thisAxis.append(struct.unpack(">H",axisData[offset+8:offset+10])[0]) # Errors
+        offset += 10
+    print(thisAxis)
+    return thisAxis
+
+def intoKinesysDataTable(addr,data):
 # See below original code, but the IP doesn't actually matter as we're already passed PLC Node Number in each packet.
-    PacketHeader = parseKinesysPacketHeaderData(data)
+    PacketHeader = KinesysPacketHeader(data)
     print(PacketHeader)
 #        print("packet header node no")
 #        print(PacketHeader["head1"])
     #Break down the header information for each packet
-    #dataTable = parsePacketHeaderData(data)
+    #dataTable = SimotionPacketHeader(data)
     dataTable = PacketHeader
     # Now only look at axisData section of the Packet
     axisData = data[LENGTH_HEADER:]
     axisCount = COM_CONFIG.FirstEChamAxis
-    for axis in range(dataTable["head2"]): #Look up headData2 from the PacketHeader
-        for combin in COM_CONFIG.axisNodeChannels:
-            if combin[0] == PacketHeader["head1"] and combin[1] == axisCount:
-                axNoCh = combin[2]
-#                    print(axNoCh)
+    KSysClassStorage = []
+    for axis in range(PacketHeader["NumDataMsgs"]): #Look up headData2 from the PacketHeader
         # Here you do the raw offset looping through the axes with the unpacking of the offset bits stuff.
-        thisAxis = breakdownThisAxis(axisData)
-        #dataTablePLC1["axisData"].append(thisAxis)
-        axisData = axisData[14:]
+        thisAxis = breakdownKinesysAxis(axisData)
+        KSysClassStorage.append(KinesysAxis(thisAxis))
+        axisData = axisData[10:]
         dataTable["axisData"].append(thisAxis)
-#            print("axisNodeChannels: [{1}]: This axis: {0}".format(thisAxis,axNoCh))
         axisCount += 1
-        Data_Table[str(axNoCh)] = thisAxis
     return dataTable
 
 
@@ -147,11 +171,11 @@ def read_main():
     'after' method. Our system sends packets every 50ms per node."""
     # Output the raw UDP data and src addr.
     AllUpdated = False
-    NodesHeardFrom = []
-    while len(NodesHeardFrom) == COM_CONFIG.NumberOfNodes or AllUpdated == False:
+    ExitCond = False
+    while ExitCond == False:
         data, addr = sock.recvfrom(2048)  # data = UDP stuff, addr is tuple, addr[0] = IP as str, addr[1] = Port as int
         print(data)
-        NodeOutput = intoDataTable(addr,data)
+        NodeOutput = intoKinesysDataTable(addr,data)
         AxisArray = sortAxisData_Table(Data_Table)
         if NodeOutput["head1"] == 1:
             Node1Get = True
