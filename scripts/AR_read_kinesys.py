@@ -40,7 +40,6 @@ class KinesysAxisPart():
 
 
 if _debug_:
-    pass
     UDP_IP = "0.0.0.0"
     UDP_PORT = 6061
     LENGTH_HEADER = 10
