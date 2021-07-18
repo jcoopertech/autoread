@@ -40,7 +40,7 @@ except ImportError:
     py3 = True
 
 import GUI_support
-from read import read_main
+from AR_read import read_main
 
 
 def vp_start_gui():
@@ -118,7 +118,7 @@ class MainWindow:
 
 
         def importAxisNames():
-            with open("axis_names.txt","r") as file:
+            with open("AR_axis_names.txt","r") as file:
                 AxisNames = list(file.readlines())
             for line in AxisNames:
                 AxisNames[AxisNames.index(line)] = line.replace("\n","")
